@@ -234,7 +234,13 @@
         const kecEl = document.getElementById('kecamatan');
         const kelEl = document.getElementById('kelurahan');
 
-        let apiLoadFailed = false;
+        // Track status API per field
+        const fieldStatus = {
+            provinsi: false, // false = belum loaded/gagal, true = berhasil
+            kota: false,
+            kecamatan: false,
+            kelurahan: false
+        };
 
         async function fetchWithTimeout(url, timeout = 10000) {
             const controller = new AbortController();
@@ -249,7 +255,43 @@
             }
         }
 
-        async function fetchAndFill(url, selectEl, placeholder) {
+        function updateErrorMessage() {
+            const errorMsg = document.getElementById('api-error-message');
+            if (!errorMsg) return;
+            
+            // Cek apakah ada field yang gagal
+            const hasFailedFields = Object.values(fieldStatus).some(status => status === false);
+            
+            if (hasFailedFields) {
+                errorMsg.classList.remove('hidden');
+            } else {
+                errorMsg.classList.add('hidden');
+            }
+        }
+
+        function convertSelectToInput(selectEl, fieldName) {
+            if (selectEl.tagName !== 'SELECT') return selectEl;
+            
+            // Simpan nilai yang sudah dipilih jika ada
+            const currentValue = selectEl.value || '';
+            const placeholder = selectEl.options[0]?.textContent || 'Isi manual';
+            
+            // Buat input text baru
+            const inputEl = document.createElement('input');
+            inputEl.type = 'text';
+            inputEl.id = selectEl.id;
+            inputEl.name = selectEl.name;
+            inputEl.placeholder = placeholder;
+            inputEl.value = currentValue;
+            inputEl.classList.add('w-full', 'border-gray-300', 'rounded-lg', 'focus:ring-[#0b5c2c]', 'focus:border-[#0b5c2c]', 'text-gray-900');
+            
+            // Ganti select dengan input
+            selectEl.parentNode.replaceChild(inputEl, selectEl);
+            
+            return inputEl;
+        }
+
+        async function fetchAndFill(url, selectEl, placeholder, fieldName) {
             selectEl.innerHTML = `<option value="">${placeholder}</option>`;
             selectEl.disabled = true;
             try {
@@ -270,20 +312,31 @@
                 });
                 selectEl.disabled = false;
                 selectEl.removeAttribute('required');
-            } catch (e) {
-                apiLoadFailed = true;
-                selectEl.innerHTML = `<option value="">Gagal memuat - isi manual di alamat lengkap</option>`;
-                selectEl.disabled = true;
-                selectEl.removeAttribute('required');
-                // Tampilkan pesan error
-                const errorMsg = document.getElementById('api-error-message');
-                if (errorMsg) {
-                    errorMsg.classList.remove('hidden');
+                // Update status field sebagai berhasil
+                if (fieldName) {
+                    fieldStatus[fieldName] = true;
                 }
+                updateErrorMessage();
+            } catch (e) {
+                // Convert select ke input text agar user bisa input manual
+                let finalEl = selectEl;
+                if (fieldName && selectEl.tagName === 'SELECT') {
+                    finalEl = convertSelectToInput(selectEl, fieldName);
+                } else if (selectEl.tagName === 'SELECT') {
+                    selectEl.innerHTML = `<option value="">Gagal memuat</option>`;
+                    selectEl.disabled = true;
+                }
+                finalEl.removeAttribute('required');
+                // Update status field sebagai gagal
+                if (fieldName) {
+                    fieldStatus[fieldName] = false;
+                }
+                updateErrorMessage();
             }
         }
 
         function resetSelect(selectEl, placeholder) {
+            if (!selectEl || selectEl.tagName !== 'SELECT') return;
             selectEl.innerHTML = `<option value="">${placeholder}</option>`;
             selectEl.disabled = true;
         }
@@ -292,33 +345,74 @@
 
         document.addEventListener('DOMContentLoaded', () => {
             updateSummary();
-            fetchAndFill(`${wilayahBase}/provinces.json`, provEl, 'Pilih provinsi');
+            fetchAndFill(`${wilayahBase}/provinces.json`, provEl, 'Pilih provinsi', 'provinsi');
         });
 
-        provEl?.addEventListener('change', () => {
-            const code = provEl.selectedOptions[0]?.dataset.code;
-            resetSelect(kotaEl, 'Pilih kota/kabupaten');
-            resetSelect(kecEl, 'Pilih kecamatan');
-            resetSelect(kelEl, 'Pilih kelurahan');
-            if (code) {
-                fetchAndFill(`${wilayahBase}/regencies/${code}.json`, kotaEl, 'Pilih kota/kabupaten');
-            }
-        });
-
-        kotaEl?.addEventListener('change', () => {
-            const code = kotaEl.selectedOptions[0]?.dataset.code;
-            resetSelect(kecEl, 'Pilih kecamatan');
-            resetSelect(kelEl, 'Pilih kelurahan');
-            if (code) {
-                fetchAndFill(`${wilayahBase}/districts/${code}.json`, kecEl, 'Pilih kecamatan');
-            }
-        });
-
-        kecEl?.addEventListener('change', () => {
-            const code = kecEl.selectedOptions[0]?.dataset.code;
-            resetSelect(kelEl, 'Pilih kelurahan');
-            if (code) {
-                fetchAndFill(`${wilayahBase}/villages/${code}.json`, kelEl, 'Pilih kelurahan');
+        // Event listener dengan delegasi untuk handle perubahan elemen (select atau input)
+        document.addEventListener('change', (e) => {
+            if (e.target.id === 'provinsi') {
+                const provinsiEl = document.getElementById('provinsi');
+                let code = null;
+                if (provinsiEl.tagName === 'SELECT') {
+                    code = provinsiEl.selectedOptions[0]?.dataset.code;
+                }
+                // Reset child fields
+                const kotaElNew = document.getElementById('kota');
+                const kecElNew = document.getElementById('kecamatan');
+                const kelElNew = document.getElementById('kelurahan');
+                if (kotaElNew && kotaElNew.tagName === 'SELECT') {
+                    resetSelect(kotaElNew, 'Pilih kota/kabupaten');
+                }
+                if (kecElNew && kecElNew.tagName === 'SELECT') {
+                    resetSelect(kecElNew, 'Pilih kecamatan');
+                }
+                if (kelElNew && kelElNew.tagName === 'SELECT') {
+                    resetSelect(kelElNew, 'Pilih kelurahan');
+                }
+                fieldStatus.kota = false;
+                fieldStatus.kecamatan = false;
+                fieldStatus.kelurahan = false;
+                updateErrorMessage();
+                if (code && kotaElNew && kotaElNew.tagName === 'SELECT') {
+                    fetchAndFill(`${wilayahBase}/regencies/${code}.json`, kotaElNew, 'Pilih kota/kabupaten', 'kota');
+                }
+            } else if (e.target.id === 'kota') {
+                const kotaElNew = document.getElementById('kota');
+                let code = null;
+                if (kotaElNew && kotaElNew.tagName === 'SELECT') {
+                    code = kotaElNew.selectedOptions[0]?.dataset.code;
+                }
+                // Reset child fields
+                const kecElNew = document.getElementById('kecamatan');
+                const kelElNew = document.getElementById('kelurahan');
+                if (kecElNew && kecElNew.tagName === 'SELECT') {
+                    resetSelect(kecElNew, 'Pilih kecamatan');
+                }
+                if (kelElNew && kelElNew.tagName === 'SELECT') {
+                    resetSelect(kelElNew, 'Pilih kelurahan');
+                }
+                fieldStatus.kecamatan = false;
+                fieldStatus.kelurahan = false;
+                updateErrorMessage();
+                if (code && kecElNew && kecElNew.tagName === 'SELECT') {
+                    fetchAndFill(`${wilayahBase}/districts/${code}.json`, kecElNew, 'Pilih kecamatan', 'kecamatan');
+                }
+            } else if (e.target.id === 'kecamatan') {
+                const kecElNew = document.getElementById('kecamatan');
+                let code = null;
+                if (kecElNew && kecElNew.tagName === 'SELECT') {
+                    code = kecElNew.selectedOptions[0]?.dataset.code;
+                }
+                // Reset child field
+                const kelElNew = document.getElementById('kelurahan');
+                if (kelElNew && kelElNew.tagName === 'SELECT') {
+                    resetSelect(kelElNew, 'Pilih kelurahan');
+                }
+                fieldStatus.kelurahan = false;
+                updateErrorMessage();
+                if (code && kelElNew && kelElNew.tagName === 'SELECT') {
+                    fetchAndFill(`${wilayahBase}/villages/${code}.json`, kelElNew, 'Pilih kelurahan', 'kelurahan');
+                }
             }
         });
     </script>
