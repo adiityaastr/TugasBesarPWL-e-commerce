@@ -148,8 +148,9 @@ class DashboardController extends Controller
         $totalOrders = $orders->count();
         $totalRevenue = $orders->where('status', '!=', 'cancelled')->sum('total_price');
         $totalCancelled = $orders->where('status', 'cancelled')->count();
-        $totalCompleted = $orders->where('status', 'pengiriman')->count();
+        // Pesanan yang sudah dikirim (belum tentu selesai, tapi sudah dalam proses pengiriman)
+        $totalShipped = $orders->where('status', 'pengiriman')->count();
 
-        return view('admin.reports.index', compact('orders', 'totalOrders', 'totalRevenue', 'totalCancelled', 'totalCompleted'));
+        return view('admin.reports.index', compact('orders', 'totalOrders', 'totalRevenue', 'totalCancelled', 'totalShipped'));
     }
 }

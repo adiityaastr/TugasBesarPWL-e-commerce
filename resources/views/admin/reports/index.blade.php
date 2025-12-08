@@ -57,8 +57,8 @@
                         <div class="text-2xl font-bold text-blue-800">Rp{{ number_format($totalRevenue, 0, ',', '.') }}</div>
                     </div>
                     <div class="bg-gradient-to-br from-purple-50 to-purple-100 border border-purple-200 rounded-xl p-5 shadow-sm">
-                        <div class="text-sm text-purple-700 font-semibold mb-2 uppercase tracking-wide">Pesanan Selesai</div>
-                        <div class="text-3xl font-bold text-purple-800">{{ $totalCompleted }}</div>
+                        <div class="text-sm text-purple-700 font-semibold mb-2 uppercase tracking-wide">Pesanan Dikirim</div>
+                        <div class="text-3xl font-bold text-purple-800">{{ $totalShipped }}</div>
                     </div>
                     <div class="bg-gradient-to-br from-red-50 to-red-100 border border-red-200 rounded-xl p-5 shadow-sm">
                         <div class="text-sm text-red-700 font-semibold mb-2 uppercase tracking-wide">Pesanan Dibatalkan</div>

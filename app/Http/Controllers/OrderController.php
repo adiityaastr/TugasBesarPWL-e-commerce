@@ -50,11 +50,11 @@ class OrderController extends Controller
         }
         $request->validate([
             'shipping_address' => 'required|string',
-            'provinsi' => 'required|string|max:255',
-            'kota' => 'required|string|max:255',
-            'kecamatan' => 'required|string|max:255',
-            'kelurahan' => 'required|string|max:255',
-            'kode_pos' => 'required|string|max:10',
+            'provinsi' => 'nullable|string|max:255',
+            'kota' => 'nullable|string|max:255',
+            'kecamatan' => 'nullable|string|max:255',
+            'kelurahan' => 'nullable|string|max:255',
+            'kode_pos' => 'nullable|string|max:10',
             'shipping_method' => 'required|in:reguler,kargo,same_day',
             'payment_method' => 'required|in:bank_transfer,credit_card,cod', // Simulated
         ]);
@@ -111,11 +111,11 @@ class OrderController extends Controller
                 'total_price' => $finalTotalPrice,
                 'status' => 'proses',
                 'shipping_address' => $request->shipping_address,
-                'provinsi' => $request->provinsi,
-                'kota' => $request->kota,
-                'kecamatan' => $request->kecamatan,
-                'kelurahan' => $request->kelurahan,
-                'kode_pos' => $request->kode_pos,
+                'provinsi' => $request->provinsi ?? null,
+                'kota' => $request->kota ?? null,
+                'kecamatan' => $request->kecamatan ?? null,
+                'kelurahan' => $request->kelurahan ?? null,
+                'kode_pos' => $request->kode_pos ?? null,
                 'shipping_method' => $request->shipping_method,
                 'shipping_cost' => $shippingCost,
                 'payment_method' => $request->payment_method,

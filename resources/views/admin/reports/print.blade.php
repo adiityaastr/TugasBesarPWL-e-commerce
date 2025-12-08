@@ -228,8 +228,8 @@
             <div class="stat-value">Rp{{ number_format($totalRevenue, 0, ',', '.') }}</div>
         </div>
         <div class="stat-box">
-            <div class="stat-label">Pesanan Selesai</div>
-            <div class="stat-value">{{ $totalCompleted }}</div>
+            <div class="stat-label">Pesanan Dikirim</div>
+            <div class="stat-value">{{ $totalShipped }}</div>
         </div>
         <div class="stat-box">
             <div class="stat-label">Pesanan Dibatalkan</div>

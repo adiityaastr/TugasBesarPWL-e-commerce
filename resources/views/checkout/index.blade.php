@@ -34,16 +34,21 @@
                                 $kelurahanOptions = ['Kuningan','Duri Kepa','Dago','Padangsari','Darmo'];
                                 $kodeposOptions = ['12920','11510','40135','50263','60241'];
                             @endphp
+                            <div id="api-error-message" class="hidden mb-3 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                                <p class="text-sm text-yellow-800">
+                                    <strong>Peringatan:</strong> Data wilayah tidak dapat dimuat. Silakan isi alamat secara manual di kolom "Alamat Lengkap" di atas.
+                                </p>
+                            </div>
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
                                 <div>
                                     <label class="block text-gray-800 text-sm font-semibold mb-2">Provinsi</label>
-                                    <select id="provinsi" name="provinsi" class="w-full border-gray-300 rounded-lg focus:ring-[#0b5c2c] focus:border-[#0b5c2c] text-gray-900" required>
+                                    <select id="provinsi" name="provinsi" class="w-full border-gray-300 rounded-lg focus:ring-[#0b5c2c] focus:border-[#0b5c2c] text-gray-900">
                                         <option value="">Pilih provinsi</option>
                                     </select>
                                 </div>
                                 <div>
                                     <label class="block text-gray-800 text-sm font-semibold mb-2">Kota/Kabupaten</label>
-                                    <select id="kota" name="kota" class="w-full border-gray-300 rounded-lg focus:ring-[#0b5c2c] focus:border-[#0b5c2c] text-gray-900" required disabled>
+                                    <select id="kota" name="kota" class="w-full border-gray-300 rounded-lg focus:ring-[#0b5c2c] focus:border-[#0b5c2c] text-gray-900" disabled>
                                         <option value="">Pilih kota/kabupaten</option>
                                     </select>
                                 </div>
@@ -51,13 +56,13 @@
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
                                 <div>
                                     <label class="block text-gray-800 text-sm font-semibold mb-2">Kecamatan</label>
-                                    <select id="kecamatan" name="kecamatan" class="w-full border-gray-300 rounded-lg focus:ring-[#0b5c2c] focus:border-[#0b5c2c] text-gray-900" required disabled>
+                                    <select id="kecamatan" name="kecamatan" class="w-full border-gray-300 rounded-lg focus:ring-[#0b5c2c] focus:border-[#0b5c2c] text-gray-900" disabled>
                                         <option value="">Pilih kecamatan</option>
                                     </select>
                                 </div>
                                 <div>
                                     <label class="block text-gray-800 text-sm font-semibold mb-2">Kelurahan</label>
-                                    <select id="kelurahan" name="kelurahan" class="w-full border-gray-300 rounded-lg focus:ring-[#0b5c2c] focus:border-[#0b5c2c] text-gray-900" required disabled>
+                                    <select id="kelurahan" name="kelurahan" class="w-full border-gray-300 rounded-lg focus:ring-[#0b5c2c] focus:border-[#0b5c2c] text-gray-900" disabled>
                                         <option value="">Pilih kelurahan</option>
                                     </select>
                                 </div>
@@ -65,7 +70,7 @@
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
                                 <div>
                                     <label class="block text-gray-800 text-sm font-semibold mb-2">Kode Pos</label>
-                                    <input id="kode_pos" type="text" name="kode_pos" class="w-full border-gray-300 rounded-lg focus:ring-[#0b5c2c] focus:border-[#0b5c2c] text-gray-900" placeholder="Isi kode pos" required>
+                                    <input id="kode_pos" type="text" name="kode_pos" class="w-full border-gray-300 rounded-lg focus:ring-[#0b5c2c] focus:border-[#0b5c2c] text-gray-900" placeholder="Isi kode pos">
                                 </div>
                             </div>
                         </div>
@@ -229,14 +234,30 @@
         const kecEl = document.getElementById('kecamatan');
         const kelEl = document.getElementById('kelurahan');
 
+        let apiLoadFailed = false;
+
+        async function fetchWithTimeout(url, timeout = 10000) {
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), timeout);
+            try {
+                const res = await fetch(url, { signal: controller.signal });
+                clearTimeout(timeoutId);
+                return res;
+            } catch (e) {
+                clearTimeout(timeoutId);
+                throw e;
+            }
+        }
+
         async function fetchAndFill(url, selectEl, placeholder) {
             selectEl.innerHTML = `<option value="">${placeholder}</option>`;
             selectEl.disabled = true;
             try {
-                const res = await fetch(url);
+                const res = await fetchWithTimeout(url, 10000);
                 if (!res.ok) throw new Error('Network');
                 const json = await res.json();
                 const data = json.data || json || [];
+                if (data.length === 0) throw new Error('Empty data');
                 data.forEach(item => {
                     const opt = document.createElement('option');
                     // API emsifa: id + name
@@ -248,9 +269,17 @@
                     selectEl.appendChild(opt);
                 });
                 selectEl.disabled = false;
+                selectEl.removeAttribute('required');
             } catch (e) {
-                selectEl.innerHTML = `<option value="">Gagal memuat</option>`;
-                selectEl.disabled = false;
+                apiLoadFailed = true;
+                selectEl.innerHTML = `<option value="">Gagal memuat - isi manual di alamat lengkap</option>`;
+                selectEl.disabled = true;
+                selectEl.removeAttribute('required');
+                // Tampilkan pesan error
+                const errorMsg = document.getElementById('api-error-message');
+                if (errorMsg) {
+                    errorMsg.classList.remove('hidden');
+                }
             }
         }
 
