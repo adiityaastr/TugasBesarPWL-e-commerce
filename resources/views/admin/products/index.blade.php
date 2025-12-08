@@ -1,4 +1,4 @@
-<x-app-layout>
+<x-admin-layout>
     <x-slot name="header">
         <div class="flex justify-between items-center">
             <h2 class="font-semibold text-xl text-gray-800 leading-tight">
@@ -36,7 +36,7 @@
                                         </div>
                                     </td>
                                     <td class="px-5 py-5 border-b border-gray-200 bg-white text-sm">
-                                        ${{ number_format($product->price, 2) }}
+                                        Rp{{ number_format($product->price, 0, ',', '.') }}
                                     </td>
                                     <td class="px-5 py-5 border-b border-gray-200 bg-white text-sm">
                                         {{ $product->stock }}
@@ -60,4 +60,4 @@
             </div>
         </div>
     </div>
-</x-app-layout>
+</x-admin-layout>

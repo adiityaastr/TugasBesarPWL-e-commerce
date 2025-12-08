@@ -6,16 +6,45 @@ use App\Models\Product;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\Rule;
 
 class ProductController extends Controller
 {
     /**
+     * Kategori standar untuk produk herbal.
+     */
+    private function categoryOptions(): array
+    {
+        return [
+            'Jamu Tradisional',
+            'Suplemen Alami',
+            'Madu & Propolis',
+            'Teh & Infus Herbal',
+            'Minyak Atsiri',
+            'Aromaterapi',
+        ];
+    }
+
+    /**
      * Display a listing of the resource (Public).
      */
-    public function index()
+    public function index(Request $request)
     {
-        $products = Product::latest()->paginate(12);
-        return view('products.index', compact('products'));
+        $query = Product::query();
+
+        if ($request->filled('category')) {
+            $query->where('category', $request->category);
+        }
+
+        $products = $query->latest()->paginate(12)->withQueryString();
+
+        $categories = Product::select('category')
+            ->whereNotNull('category')
+            ->distinct()
+            ->orderBy('category')
+            ->pluck('category');
+
+        return view('products.index', compact('products', 'categories'));
     }
 
     /**
@@ -32,7 +61,8 @@ class ProductController extends Controller
      */
     public function create()
     {
-        return view('admin.products.create');
+        $categories = $this->categoryOptions();
+        return view('admin.products.create', compact('categories'));
     }
 
     /**
@@ -40,12 +70,14 @@ class ProductController extends Controller
      */
     public function store(Request $request)
     {
+        $categories = $this->categoryOptions();
         $request->validate([
             'name' => 'required|string|max:255',
             'description' => 'required|string',
             'price' => 'required|numeric|min:0',
             'stock' => 'required|integer|min:0',
             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'category' => ['nullable','string','max:255', Rule::in($categories)],
         ]);
 
         $imagePath = null;
@@ -60,6 +92,7 @@ class ProductController extends Controller
             'price' => $request->price,
             'stock' => $request->stock,
             'image' => $imagePath,
+            'category' => $request->category,
         ]);
 
         return redirect()->route('admin.products.index')->with('success', 'Product created successfully.');
@@ -78,7 +111,8 @@ class ProductController extends Controller
      */
     public function edit(Product $product)
     {
-        return view('admin.products.edit', compact('product'));
+        $categories = $this->categoryOptions();
+        return view('admin.products.edit', compact('product', 'categories'));
     }
 
     /**
@@ -86,12 +120,14 @@ class ProductController extends Controller
      */
     public function update(Request $request, Product $product)
     {
+        $categories = $this->categoryOptions();
         $request->validate([
             'name' => 'required|string|max:255',
             'description' => 'required|string',
             'price' => 'required|numeric|min:0',
             'stock' => 'required|integer|min:0',
             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'category' => ['nullable','string','max:255', Rule::in($categories)],
         ]);
 
         if ($request->hasFile('image')) {
@@ -109,6 +145,7 @@ class ProductController extends Controller
             'price' => $request->price,
             'stock' => $request->stock,
             'image' => $product->image,
+            'category' => $request->category,
         ]);
 
         return redirect()->route('admin.products.index')->with('success', 'Product updated successfully.');

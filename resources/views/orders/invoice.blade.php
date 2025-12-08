@@ -82,13 +82,13 @@
             @foreach($order->items as $item)
             <tr class="item">
                 <td>{{ $item->product->name }} (x{{ $item->quantity }})</td>
-                <td>${{ number_format($item->price * $item->quantity, 2) }}</td>
+                <td>Rp{{ number_format($item->price * $item->quantity, 0, ',', '.') }}</td>
             </tr>
             @endforeach
 
             <tr class="total">
                 <td></td>
-                <td>Total: ${{ number_format($order->total_price, 2) }}</td>
+                <td>Total: Rp{{ number_format($order->total_price, 0, ',', '.') }}</td>
             </tr>
         </table>
     </div>

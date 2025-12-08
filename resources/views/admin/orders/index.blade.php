@@ -1,64 +1,134 @@
-<x-app-layout>
-    <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-            {{ __('Manage Orders') }}
-        </h2>
-    </x-slot>
-
-    <div class="py-12">
+<x-admin-layout>
+    <div class="py-10 bg-gray-50">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
-                <div class="p-6 text-gray-900 overflow-x-auto">
-                    <table class="min-w-full leading-normal">
-                        <thead>
-                            <tr>
-                                <th class="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Order ID</th>
-                                <th class="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Customer</th>
-                                <th class="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Total</th>
-                                <th class="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Date</th>
-                                <th class="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Status</th>
-                                <th class="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Update Status</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach($orders as $order)
+            @if(session('success'))
+                <div class="mb-4 bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded-lg">
+                    {{ session('success') }}
+                </div>
+            @endif
+
+            @if(session('error'))
+                <div class="mb-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg">
+                    {{ session('error') }}
+                </div>
+            @endif
+
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                <div class="p-6 md:p-8">
+                    <div class="flex items-center justify-between mb-6">
+                        <h2 class="text-2xl font-bold text-gray-900">Kelola Pesanan</h2>
+                        @php
+                            $pendingCancellations = \App\Models\Order::where('status', 'pending_cancellation')->count();
+                        @endphp
+                        @if($pendingCancellations > 0)
+                            <div class="bg-red-50 border border-red-200 rounded-lg px-4 py-2">
+                                <span class="text-sm font-semibold text-red-700">
+                                    ⚠️ {{ $pendingCancellations }} pembatalan menunggu konfirmasi
+                                </span>
+                            </div>
+                        @endif
+                    </div>
+
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full leading-normal">
+                            <thead>
                                 <tr>
-                                    <td class="px-5 py-5 border-b border-gray-200 bg-white text-sm">#{{ $order->id }}</td>
-                                    <td class="px-5 py-5 border-b border-gray-200 bg-white text-sm">{{ $order->user->name }}</td>
-                                    <td class="px-5 py-5 border-b border-gray-200 bg-white text-sm">${{ number_format($order->total_price, 2) }}</td>
-                                    <td class="px-5 py-5 border-b border-gray-200 bg-white text-sm">{{ $order->created_at->format('M d, Y') }}</td>
-                                    <td class="px-5 py-5 border-b border-gray-200 bg-white text-sm">
-                                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
-                                            @if($order->status == 'completed') bg-green-100 text-green-800 
-                                            @elseif($order->status == 'cancelled') bg-red-100 text-red-800 
-                                            @else bg-yellow-100 text-yellow-800 @endif">
-                                            {{ ucfirst($order->status) }}
-                                        </span>
-                                    </td>
-                                    <td class="px-5 py-5 border-b border-gray-200 bg-white text-sm">
-                                        <form action="{{ route('admin.orders.update', $order) }}" method="POST" class="flex items-center">
-                                            @csrf
-                                            @method('PATCH')
-                                            <select name="status" class="text-sm border-gray-300 rounded-md shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 mr-2">
-                                                <option value="pending" {{ $order->status == 'pending' ? 'selected' : '' }}>Pending</option>
-                                                <option value="processing" {{ $order->status == 'processing' ? 'selected' : '' }}>Processing</option>
-                                                <option value="completed" {{ $order->status == 'completed' ? 'selected' : '' }}>Completed</option>
-                                                <option value="cancelled" {{ $order->status == 'cancelled' ? 'selected' : '' }}>Cancelled</option>
-                                            </select>
-                                            <button type="submit" class="text-xs bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-2 rounded">
-                                                Update
-                                            </button>
-                                        </form>
-                                    </td>
+                                    <th class="px-5 py-3 border-b-2 border-gray-200 bg-gray-50 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Order ID</th>
+                                    <th class="px-5 py-3 border-b-2 border-gray-200 bg-gray-50 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Customer</th>
+                                    <th class="px-5 py-3 border-b-2 border-gray-200 bg-gray-50 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Total</th>
+                                    <th class="px-5 py-3 border-b-2 border-gray-200 bg-gray-50 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Tanggal</th>
+                                    <th class="px-5 py-3 border-b-2 border-gray-200 bg-gray-50 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Status</th>
+                                    <th class="px-5 py-3 border-b-2 border-gray-200 bg-gray-50 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Aksi</th>
                                 </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
-                    <div class="mt-4">
+                            </thead>
+                            <tbody>
+                                @forelse($orders as $order)
+                                    <tr class="hover:bg-gray-50 transition">
+                                        <td class="px-5 py-5 border-b border-gray-100 bg-white text-sm font-semibold text-gray-900">#{{ $order->id }}</td>
+                                        <td class="px-5 py-5 border-b border-gray-100 bg-white text-sm text-gray-700">{{ $order->user->name }}</td>
+                                        <td class="px-5 py-5 border-b border-gray-100 bg-white text-sm font-semibold text-gray-900">Rp{{ number_format($order->total_price, 0, ',', '.') }}</td>
+                                        <td class="px-5 py-5 border-b border-gray-100 bg-white text-sm text-gray-600">{{ $order->created_at->format('d M Y H:i') }}</td>
+                                        <td class="px-5 py-5 border-b border-gray-100 bg-white text-sm">
+                                            <span class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full 
+                                                @if($order->status == 'cancelled') bg-red-100 text-red-800 
+                                                @elseif($order->status == 'pending_cancellation') bg-orange-100 text-orange-800 
+                                                @elseif($order->status == 'pengiriman') bg-blue-100 text-blue-800 
+                                                @elseif($order->status == 'pengemasan') bg-purple-100 text-purple-800 
+                                                @elseif($order->status == 'proses') bg-yellow-100 text-yellow-800 
+                                                @else bg-gray-100 text-gray-800 @endif">
+                                                @if($order->status == 'pending_cancellation')
+                                                    Menunggu Konfirmasi Pembatalan
+                                                @elseif($order->status == 'proses')
+                                                    Proses
+                                                @elseif($order->status == 'pengemasan')
+                                                    Pengemasan
+                                                @elseif($order->status == 'pengiriman')
+                                                    Pengiriman
+                                                @elseif($order->status == 'cancelled')
+                                                    Dibatalkan
+                                                @else
+                                                    {{ ucfirst($order->status) }}
+                                                @endif
+                                            </span>
+                                        </td>
+                                        <td class="px-5 py-5 border-b border-gray-100 bg-white text-sm">
+                                            @if($order->status === 'pending_cancellation')
+                                                <div class="space-y-2">
+                                                    <div class="bg-orange-50 border border-orange-200 rounded-lg p-3 mb-2">
+                                                        <div class="text-xs font-semibold text-orange-800 mb-1">Alasan Pembatalan:</div>
+                                                        <div class="text-xs text-orange-700">{{ $order->cancellation_reason }}</div>
+                                                    </div>
+                                                    <div class="flex gap-2">
+                                                        <form action="{{ route('admin.orders.approve-cancellation', $order) }}" method="POST" class="inline">
+                                                            @csrf
+                                                            <button type="submit" onclick="return confirm('Setujui pembatalan pesanan ini?')" class="text-xs bg-red-500 hover:bg-red-600 text-white font-semibold py-2 px-3 rounded-lg transition">
+                                                                Setujui Pembatalan
+                                                            </button>
+                                                        </form>
+                                                        <form action="{{ route('admin.orders.reject-cancellation', $order) }}" method="POST" class="inline">
+                                                            @csrf
+                                                            <button type="submit" onclick="return confirm('Tolak pembatalan dan lanjutkan pesanan?')" class="text-xs bg-gray-500 hover:bg-gray-600 text-white font-semibold py-2 px-3 rounded-lg transition">
+                                                                Tolak Pembatalan
+                                                            </button>
+                                                        </form>
+                                                    </div>
+                                                </div>
+                                            @elseif($order->status !== 'cancelled')
+                                                <form action="{{ route('admin.orders.update', $order) }}" method="POST" class="flex items-center gap-2">
+                                                    @csrf
+                                                    @method('PATCH')
+                                                    <select name="status" class="text-sm border-gray-300 rounded-lg shadow-sm focus:border-[#0b5c2c] focus:ring focus:ring-[#0b5c2c] focus:ring-opacity-50 text-gray-700">
+                                                        <option value="proses" {{ $order->status == 'proses' ? 'selected' : '' }}>Proses</option>
+                                                        <option value="pengemasan" {{ $order->status == 'pengemasan' ? 'selected' : '' }}>Pengemasan</option>
+                                                        <option value="pengiriman" {{ $order->status == 'pengiriman' ? 'selected' : '' }}>Pengiriman</option>
+                                                        @if($order->status == 'pending_cancellation')
+                                                            <option value="cancelled" {{ $order->status == 'cancelled' ? 'selected' : '' }}>Dibatalkan</option>
+                                                        @endif
+                                                    </select>
+                                                    <button type="submit" class="text-xs bg-[#0b5c2c] hover:bg-[#094520] text-white font-semibold py-2 px-4 rounded-lg transition">
+                                                        Update
+                                                    </button>
+                                                </form>
+                                            @else
+                                                <span class="text-xs text-gray-500">Pesanan dibatalkan</span>
+                                            @endif
+                                        </td>
+                                    </tr>
+                                @empty
+                                    <tr>
+                                        <td colspan="6" class="px-5 py-10 text-center text-gray-500">
+                                            Belum ada pesanan.
+                                        </td>
+                                    </tr>
+                                @endforelse
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="mt-6">
                         {{ $orders->links() }}
                     </div>
                 </div>
             </div>
         </div>
     </div>
-</x-app-layout>
+</x-admin-layout>

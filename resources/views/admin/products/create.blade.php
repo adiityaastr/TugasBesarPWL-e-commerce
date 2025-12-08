@@ -1,4 +1,4 @@
-<x-app-layout>
+<x-admin-layout>
     <x-slot name="header">
         <h2 class="font-semibold text-xl text-gray-800 leading-tight">
             {{ isset($product) ? 'Edit Product' : 'Create New Product' }}
@@ -27,6 +27,18 @@
                                 Description
                             </label>
                             <textarea class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="description" name="description" rows="5" required>{{ old('description', $product->description ?? '') }}</textarea>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="block text-gray-700 text-sm font-bold mb-2" for="category">
+                                Category
+                            </label>
+                            <select id="category" name="category" class="shadow border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                                <option value="">-- Pilih kategori --</option>
+                                @foreach($categories as $cat)
+                                    <option value="{{ $cat }}" {{ old('category', $product->category ?? '') === $cat ? 'selected' : '' }}>{{ $cat }}</option>
+                                @endforeach
+                            </select>
                         </div>
 
                         <div class="flex gap-4 mb-4">
@@ -67,4 +79,4 @@
             </div>
         </div>
     </div>
-</x-app-layout>
+</x-admin-layout>

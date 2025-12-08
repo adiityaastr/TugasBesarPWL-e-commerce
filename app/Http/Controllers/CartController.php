@@ -11,18 +11,29 @@ class CartController extends Controller
 {
     public function index()
     {
+        if (Auth::user()?->role === 'admin') {
+            return redirect()->route('admin.dashboard')->with('error', 'Admin tidak dapat melakukan pembelian.');
+        }
         $cartItems = Cart::with('product')->where('user_id', Auth::id())->get();
         return view('cart.index', compact('cartItems'));
     }
 
     public function store(Request $request)
     {
+        if (Auth::user()?->role === 'admin') {
+            return redirect()->route('admin.dashboard')->with('error', 'Admin tidak dapat melakukan pembelian.');
+        }
         $request->validate([
             'product_id' => 'required|exists:products,id',
             'quantity' => 'required|integer|min:1',
+            'redirect_to' => 'nullable|in:checkout',
         ]);
 
         $product = Product::find($request->product_id);
+
+        if (!$product) {
+            return back()->with('error', 'Product not found.');
+        }
 
         if ($product->stock < $request->quantity) {
              return back()->with('error', 'Product out of stock or insufficient quantity.');
@@ -43,11 +54,18 @@ class CartController extends Controller
             ]);
         }
 
+        if ($request->redirect_to === 'checkout') {
+            return redirect()->route('checkout.index');
+        }
+
         return redirect()->route('cart.index')->with('success', 'Product added to cart.');
     }
 
     public function update(Request $request, Cart $cart)
     {
+        if (Auth::user()?->role === 'admin') {
+            return redirect()->route('admin.dashboard')->with('error', 'Admin tidak dapat melakukan pembelian.');
+        }
         if ($cart->user_id !== Auth::id()) abort(403);
         
         $request->validate(['quantity' => 'required|integer|min:1']);
@@ -63,6 +81,9 @@ class CartController extends Controller
 
     public function destroy(Cart $cart)
     {
+        if (Auth::user()?->role === 'admin') {
+            return redirect()->route('admin.dashboard')->with('error', 'Admin tidak dapat melakukan pembelian.');
+        }
         if ($cart->user_id !== Auth::id()) abort(403);
         $cart->delete();
         return back()->with('success', 'Item removed from cart.');

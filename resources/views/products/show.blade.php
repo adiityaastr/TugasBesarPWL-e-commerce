@@ -1,9 +1,10 @@
 <x-app-layout>
     <div class="py-8 bg-white">
+        <div id="product-data" class="hidden" data-price="{{ $product->price }}" data-stock="{{ $product->stock }}"></div>
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <!-- Breadcrumbs -->
             <div class="text-sm text-gray-500 mb-4 flex items-center gap-2">
-                <a href="{{ route('home') }}" class="hover:text-[#03AC0E]">Home</a>
+                <a href="{{ route('home') }}" class="hover:text-[#0b5c2c]">Home</a>
                 <span>/</span>
                 <span class="text-gray-800 font-medium truncate">{{ $product->name }}</span>
             </div>
@@ -40,17 +41,17 @@
                     </div>
 
                     <div class="border-t border-b border-gray-100 py-4 mb-6">
-                        <h3 class="font-bold text-[#03AC0E] text-sm mb-2">Detail</h3>
+                        <h3 class="font-bold text-[#0b5c2c] text-sm mb-2">Detail Produk Herbal</h3>
                         <div class="prose prose-sm max-w-none text-gray-700 leading-relaxed">
                             {{ $product->description }}
                         </div>
                     </div>
 
                     <div class="flex items-center gap-3">
-                         <img src="https://ui-avatars.com/api/?name=Admin+Store&background=0D8ABC&color=fff" class="w-10 h-10 rounded-full" alt="Store">
+                         <img src="https://ui-avatars.com/api/?name=HerbaMart+Store&background=0b5c2c&color=fff" class="w-10 h-10 rounded-full" alt="Store">
                          <div>
-                             <div class="font-bold text-sm text-gray-800">Official Store</div>
-                             <div class="text-xs text-[#03AC0E] font-medium">• Online</div>
+                             <div class="font-bold text-sm text-gray-800">HerbaMart Official</div>
+                             <div class="text-xs text-[#0b5c2c] font-medium">• Online | Produk terkurasi</div>
                          </div>
                     </div>
                 </div>
@@ -61,39 +62,51 @@
                         <h3 class="font-bold text-gray-900 mb-4">Atur jumlah dan catatan</h3>
                         
                         @auth
-                            @if($product->stock > 0)
-                                <form action="{{ route('cart.store') }}" method="POST">
-                                    @csrf
-                                    <input type="hidden" name="product_id" value="{{ $product->id }}">
-                                    
-                                    <div class="flex items-center border border-gray-300 rounded mb-4 w-max">
-                                        <button type="button" onclick="decrement()" class="px-3 py-1 text-gray-600 hover:bg-gray-100 rounded-l">-</button>
-                                        <input type="number" name="quantity" id="quantity" value="1" min="1" max="{{ $product->stock }}" class="w-12 text-center border-none p-1 text-sm focus:ring-0">
-                                        <button type="button" onclick="increment()" class="px-3 py-1 text-[#03AC0E] hover:bg-gray-100 rounded-r">+</button>
-                                    </div>
-                                    <p class="text-xs text-gray-500 mb-4">Stok Total: <span class="font-bold text-gray-700">{{ $product->stock }}</span></p>
+                            @if(Auth::user()->role !== 'admin')
+                                @if($product->stock > 0)
+                                    <form action="{{ route('cart.store') }}" method="POST">
+                                        @csrf
+                                        <input type="hidden" name="product_id" value="{{ $product->id }}">
+                                        
+                                        <div class="flex items-center border border-gray-300 rounded mb-4 w-max">
+                                            <button type="button" onclick="decrement()" class="px-3 py-1 text-gray-700 hover:bg-green-50 rounded-l">-</button>
+                                            <input type="number" name="quantity" id="quantity" value="1" min="1" max="{{ $product->stock }}" class="w-12 text-center border-none p-1 text-sm focus:ring-0 text-gray-900">
+                                            <button type="button" onclick="increment()" class="px-3 py-1 text-[#0b5c2c] hover:bg-green-50 rounded-r">+</button>
+                                        </div>
+                                        <p class="text-xs text-gray-500 mb-4">Stok Total: <span class="font-bold text-gray-700">{{ $product->stock }}</span></p>
 
-                                    <div class="flex items-center justify-between mb-6">
-                                        <span class="text-gray-600 text-sm">Subtotal</span>
-                                        <span class="font-bold text-lg text-gray-900" id="subtotal">Rp{{ number_format($product->price, 0, ',', '.') }}</span>
-                                    </div>
+                                        <div class="flex items-center justify-between mb-6">
+                                            <span class="text-gray-600 text-sm">Subtotal</span>
+                                            <span class="font-bold text-lg text-gray-900" id="subtotal">Rp{{ number_format($product->price, 0, ',', '.') }}</span>
+                                        </div>
 
-                                    <div class="flex flex-col gap-2">
-                                        <button type="submit" class="w-full bg-[#03AC0E] hover:bg-green-700 text-white font-bold py-2.5 rounded-lg transition">
-                                            + Keranjang
-                                        </button>
-                                        <button type="button" class="w-full border border-[#03AC0E] text-[#03AC0E] hover:bg-green-50 font-bold py-2.5 rounded-lg transition">
+                                        <div class="flex flex-col gap-2">
+                                            <button type="submit" class="w-full bg-[#0b5c2c] hover:bg-[#0a4a24] text-white font-bold py-2.5 rounded-lg transition">
+                                                + Keranjang
+                                            </button>
+                                        </div>
+                                    </form>
+                                    <form action="{{ route('cart.store') }}" method="POST" class="mt-2">
+                                        @csrf
+                                        <input type="hidden" name="product_id" value="{{ $product->id }}">
+                                        <input type="hidden" name="quantity" id="quantity-buy-now" value="1">
+                                        <input type="hidden" name="redirect_to" value="checkout">
+                                        <button type="submit" class="w-full border border-[#0b5c2c] text-[#0b5c2c] hover:bg-[#0b5c2c] hover:text-white font-bold py-2.5 rounded-lg transition">
                                             Beli Langsung
                                         </button>
+                                    </form>
+                                @else
+                                    <div class="bg-gray-100 text-gray-500 text-center py-4 rounded-lg font-bold">
+                                        Stok Habis
                                     </div>
-                                </form>
+                                @endif
                             @else
-                                <div class="bg-gray-100 text-gray-500 text-center py-4 rounded-lg font-bold">
-                                    Stok Habis
+                                <div class="bg-yellow-50 border border-yellow-200 text-yellow-800 text-sm rounded-lg p-4">
+                                    Mode admin: hanya melihat detail produk, tidak dapat membeli.
                                 </div>
                             @endif
                         @else
-                            <a href="{{ route('login') }}" class="block w-full bg-[#03AC0E] hover:bg-green-700 text-white font-bold py-2.5 rounded-lg text-center transition">
+                            <a href="{{ route('login') }}" class="block w-full bg-[#0b5c2c] hover:bg-[#0a4a24] text-white font-bold py-2.5 rounded-lg text-center transition">
                                 Masuk untuk Membeli
                             </a>
                         @endauth
@@ -104,9 +117,11 @@
     </div>
 
     <script>
-        const price = {{ $product->price }};
-        const stock = {{ $product->stock }};
+        const productDataEl = document.getElementById('product-data');
+        const price = Number(productDataEl?.dataset.price || 0);
+        const stock = Number(productDataEl?.dataset.stock || 0);
         const qtyInput = document.getElementById('quantity');
+        const qtyBuyNowInput = document.getElementById('quantity-buy-now');
         const subtotalEl = document.getElementById('subtotal');
 
         function formatRupiah(num) {
@@ -119,7 +134,13 @@
             if(qty < 1) qty = 1;
             if(qty > stock) qty = stock;
             qtyInput.value = qty;
-            subtotalEl.innerText = formatRupiah(qty * price);
+            // Update quantity-buy-now juga agar sinkron
+            if(qtyBuyNowInput) {
+                qtyBuyNowInput.value = qty;
+            }
+            if(subtotalEl) {
+                subtotalEl.innerText = formatRupiah(qty * price);
+            }
         }
 
         function increment() {

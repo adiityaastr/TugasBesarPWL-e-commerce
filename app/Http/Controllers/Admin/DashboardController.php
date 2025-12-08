@@ -17,7 +17,62 @@ class DashboardController extends Controller
         $totalUsers = User::where('role', 'customer')->count();
         $recentOrders = Order::with('user')->latest()->take(5)->get();
 
-        return view('admin.dashboard', compact('totalOrders', 'totalProducts', 'totalUsers', 'recentOrders'));
+        // Data untuk grafik pendapatan per bulan (6 bulan terakhir)
+        $monthlyRevenue = Order::selectRaw('DATE_FORMAT(created_at, "%Y-%m") as month, SUM(total_price) as revenue')
+            ->where('created_at', '>=', now()->subMonths(6))
+            ->where('status', '!=', 'cancelled')
+            ->groupBy('month')
+            ->orderBy('month')
+            ->get();
+
+        $revenueLabels = $monthlyRevenue->pluck('month')->map(function($month) {
+            return date('M Y', strtotime($month . '-01'));
+        })->toArray();
+        $revenueData = $monthlyRevenue->pluck('revenue')->toArray();
+
+        // Data untuk grafik produk terlaris (top 5)
+        $topProducts = \App\Models\OrderItem::selectRaw('order_items.product_id, SUM(order_items.quantity) as total_sold')
+            ->join('orders', 'order_items.order_id', '=', 'orders.id')
+            ->where('orders.status', '!=', 'cancelled')
+            ->groupBy('order_items.product_id')
+            ->orderByDesc('total_sold')
+            ->take(5)
+            ->get();
+
+        $productIds = $topProducts->pluck('product_id')->toArray();
+        $products = Product::whereIn('id', $productIds)->get()->keyBy('id');
+        
+        $productLabels = $topProducts->map(function($item) use ($products) {
+            return $products->get($item->product_id)?->name ?? 'Unknown';
+        })->toArray();
+        $productData = $topProducts->pluck('total_sold')->toArray();
+
+        // Data untuk grafik status pesanan
+        $orderStatuses = Order::selectRaw('status, COUNT(*) as count')
+            ->groupBy('status')
+            ->get();
+
+        $statusLabels = $orderStatuses->pluck('status')->map(function($status) {
+            return ucfirst(str_replace('_', ' ', $status));
+        })->toArray();
+        $statusData = $orderStatuses->pluck('count')->toArray();
+
+        // Total pendapatan
+        $totalRevenue = Order::where('status', '!=', 'cancelled')->sum('total_price');
+
+        return view('admin.dashboard', compact(
+            'totalOrders', 
+            'totalProducts', 
+            'totalUsers', 
+            'recentOrders',
+            'revenueLabels',
+            'revenueData',
+            'productLabels',
+            'productData',
+            'statusLabels',
+            'statusData',
+            'totalRevenue'
+        ));
     }
     
     public function orders()
@@ -29,11 +84,72 @@ class DashboardController extends Controller
     public function updateOrderStatus(Request $request, Order $order)
     {
         $request->validate([
-            'status' => 'required|in:pending,processing,completed,cancelled',
+            'status' => 'required|in:proses,pengemasan,pengiriman,cancelled',
         ]);
+
+        // Jika status cancelled dipilih, pastikan ada pending_cancellation
+        if ($request->status === 'cancelled' && $order->status !== 'pending_cancellation') {
+            return back()->with('error', 'Pembatalan hanya bisa dilakukan jika pembeli sudah mengajukan pembatalan.');
+        }
 
         $order->update(['status' => $request->status]);
 
-        return back()->with('success', 'Order status updated.');
+        return back()->with('success', 'Status pesanan berhasil diperbarui.');
+    }
+
+    public function approveCancellation(Request $request, Order $order)
+    {
+        if ($order->status !== 'pending_cancellation') {
+            return back()->with('error', 'Pesanan ini tidak memiliki permintaan pembatalan.');
+        }
+
+        $order->update(['status' => 'cancelled']);
+
+        return back()->with('success', 'Pembatalan pesanan telah disetujui.');
+    }
+
+    public function rejectCancellation(Request $request, Order $order)
+    {
+        if ($order->status !== 'pending_cancellation') {
+            return back()->with('error', 'Pesanan ini tidak memiliki permintaan pembatalan.');
+        }
+
+        // Kembalikan ke status sebelumnya atau default ke 'proses'
+        $order->update([
+            'status' => 'proses',
+            'cancellation_reason' => null,
+        ]);
+
+        return back()->with('success', 'Pembatalan pesanan telah ditolak. Pesanan dikembalikan ke status proses.');
+    }
+
+    public function reports(Request $request)
+    {
+        $query = Order::with(['user', 'items.product']);
+
+        // Filter berdasarkan tanggal mulai
+        if ($request->filled('start_date')) {
+            $query->whereDate('created_at', '>=', $request->start_date);
+        }
+
+        // Filter berdasarkan tanggal akhir
+        if ($request->filled('end_date')) {
+            $query->whereDate('created_at', '<=', $request->end_date);
+        }
+
+        // Filter berdasarkan status
+        if ($request->filled('status') && $request->status !== 'all') {
+            $query->where('status', $request->status);
+        }
+
+        $orders = $query->latest()->get();
+
+        // Hitung statistik
+        $totalOrders = $orders->count();
+        $totalRevenue = $orders->where('status', '!=', 'cancelled')->sum('total_price');
+        $totalCancelled = $orders->where('status', 'cancelled')->count();
+        $totalCompleted = $orders->where('status', 'pengiriman')->count();
+
+        return view('admin.reports.index', compact('orders', 'totalOrders', 'totalRevenue', 'totalCancelled', 'totalCompleted'));
     }
 }

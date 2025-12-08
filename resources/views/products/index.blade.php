@@ -1,40 +1,47 @@
 <x-app-layout>
     <!-- Hero Section -->
     <div class="mb-8">
-        <!-- Banner Carousel (Static for MVP) -->
-        <div class="rounded-xl overflow-hidden shadow-sm mb-8 relative">
-            <img src="/hero-placeholder.svg" alt="Promo Banner" class="w-full h-auto min-h-[300px] object-cover">
-            <div class="absolute bottom-4 left-0 right-0 flex justify-center space-x-2">
-                <div class="w-2 h-2 rounded-full bg-white opacity-100 shadow"></div>
-                <div class="w-2 h-2 rounded-full bg-white opacity-50 shadow"></div>
-                <div class="w-2 h-2 rounded-full bg-white opacity-50 shadow"></div>
+        <div class="rounded-xl overflow-hidden shadow-sm mb-8 relative bg-gradient-to-r from-[#f1f8f3] to-[#e3f1e6] text-[#0b5c2c] border border-[#d7e7db]">
+            <div class="absolute inset-0 opacity-25 bg-[url('https://images.unsplash.com/photo-1501004318641-b39e6451bec6?auto=format&fit=crop&w=1400&q=60')] bg-cover bg-center"></div>
+            <div class="relative px-6 py-12 md:px-10 lg:px-16 lg:py-14">
+                <p class="uppercase text-xs font-semibold tracking-[0.2em] mb-2 text-[#0b5c2c]">HerbaMart</p>
+                <h1 class="text-3xl md:text-4xl font-bold mb-3 text-[#0b5c2c]">Obat Herbal, Jamu, & Suplemen Alami</h1>
+                <p class="max-w-2xl text-[#1f2d1f] mb-6">Pilihan herbal terkurasi: madu murni, jamu tradisional, minyak atsiri, teh herbal, dan suplemen alami untuk daya tahan tubuh.</p>
+                <div class="flex flex-wrap gap-3">
+                    <a href="#kategori-herbal" class="inline-flex items-center px-5 py-3 bg-[#0b5c2c] text-white font-semibold rounded-lg shadow-lg border border-[#06401b] hover:bg-[#09481f] hover:border-[#09481f] transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0b5c2c]">
+                        Jelajahi Kategori
+                    </a>
+                    <a href="#produk-herbal" class="inline-flex items-center px-5 py-3 bg-white text-[#0b5c2c] font-semibold rounded-lg shadow border border-[#0b5c2c] hover:bg-[#0b5c2c] hover:text-white transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0b5c2c]">
+                        Produk Unggulan
+                    </a>
+                </div>
             </div>
         </div>
 
         <!-- Categories -->
-        <div class="mb-10 p-6 bg-white rounded-xl shadow-sm border border-gray-100">
-            <h3 class="font-bold text-xl mb-6 text-gray-800">Kategori Pilihan</h3>
+        <div id="kategori-herbal" class="mb-10 p-6 bg-white rounded-xl shadow-sm border border-gray-100">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="font-bold text-xl text-gray-900">Kategori Herbal</h3>
+                @if(request('category'))
+                    <a href="{{ route('home') }}" class="text-sm text-[#0b5c2c] font-semibold hover:underline">Reset</a>
+                @endif
+            </div>
             <div class="grid grid-cols-2 md:grid-cols-6 gap-4">
-                @foreach([
-                    ['name' => 'Elektronik', 'icon' => 'M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z'],
-                    ['name' => 'Fashion', 'icon' => 'M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z'], // Generic User/Fashion
-                    ['name' => 'Gaming', 'icon' => 'M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z'],
-                    ['name' => 'Rumah Tangga', 'icon' => 'M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6'],
-                    ['name' => 'Kesehatan', 'icon' => 'M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z'],
-                    ['name' => 'Otomotif', 'icon' => 'M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4'] // Exchange
-                ] as $cat)
-                <div class="flex flex-col items-center justify-center p-4 border rounded-lg hover:shadow-md hover:border-[#03AC0E] cursor-pointer transition group">
-                    <div class="w-12 h-12 bg-gray-50 rounded-full flex items-center justify-center mb-2 group-hover:bg-green-50 transition">
-                         <svg class="w-6 h-6 text-gray-500 group-hover:text-[#03AC0E]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="{{ $cat['icon'] }}"></path></svg>
-                    </div>
-                    <span class="text-sm text-gray-600 font-medium group-hover:text-[#03AC0E]">{{ $cat['name'] }}</span>
-                </div>
-                @endforeach
+                @forelse($categories as $cat)
+                    <a href="{{ route('home', ['category' => $cat]) }}" class="flex flex-col items-center justify-center p-4 border rounded-lg hover:shadow-md hover:border-[#0b5c2c] cursor-pointer transition group {{ request('category') === $cat ? 'border-[#0b5c2c] bg-green-50' : '' }}">
+                        <div class="w-12 h-12 bg-green-50 rounded-full flex items-center justify-center mb-2 group-hover:bg-green-100 transition">
+                            <span class="text-sm font-bold text-[#0b5c2c]">{{ strtoupper(Str::limit($cat, 3, '')) }}</span>
+                        </div>
+                        <span class="text-sm text-gray-800 font-semibold group-hover:text-[#0b5c2c] text-center">{{ $cat }}</span>
+                    </a>
+                @empty
+                    <div class="col-span-2 text-sm text-gray-500">Belum ada kategori.</div>
+                @endforelse
             </div>
         </div>
 
         <!-- Product Grid -->
-        <h3 class="font-bold text-xl mb-4 text-gray-800">Traktir Pengguna Baru</h3>
+        <h3 id="produk-herbal" class="font-bold text-xl mb-4 text-gray-800">Produk Herbal Terbaru</h3>
         <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
             @foreach($products as $product)
                 <div class="bg-white rounded-lg shadow-sm hover:shadow-md transition duration-200 border border-gray-100 flex flex-col h-full">
@@ -49,7 +56,7 @@
                     </a>
 
                     <div class="p-3 flex flex-col flex-grow">
-                        <a href="{{ route('products.show', $product) }}" class="text-sm text-gray-800 leading-snug mb-1 line-clamp-2 hover:text-[#03AC0E] no-underline">
+                        <a href="{{ route('products.show', $product) }}" class="text-sm text-gray-900 leading-snug mb-1 line-clamp-2 hover:text-[#0b5c2c] no-underline">
                             {{ $product->name }}
                         </a>
                         <div class="font-bold text-[#212121] mb-1">
@@ -68,14 +75,31 @@
                         </div>
 
                         @auth
-                            <form action="{{ route('cart.store') }}" method="POST" class="w-full">
-                                @csrf
-                                <input type="hidden" name="product_id" value="{{ $product->id }}">
-                                <input type="hidden" name="quantity" value="1">
-                                <button type="submit" class="w-full block text-center px-3 py-1.5 border border-[#03AC0E] text-[#03AC0E] font-bold rounded text-xs hover:bg-green-50 transition">
+                            @if(Auth::user()->role !== 'admin')
+                                <form action="{{ route('cart.store') }}" method="POST" class="w-full">
+                                    @csrf
+                                    <input type="hidden" name="product_id" value="{{ $product->id }}">
+                                    <input type="hidden" name="quantity" value="1">
+                                <button type="submit" class="w-full block text-center px-3 py-1.5 border border-[#0b5c2c] text-[#0b5c2c] font-bold rounded text-xs hover:bg-green-50 transition">
                                     + Keranjang
                                 </button>
-                            </form>
+                                </form>
+                                <form action="{{ route('cart.store') }}" method="POST" class="w-full mt-2">
+                                    @csrf
+                                    <input type="hidden" name="product_id" value="{{ $product->id }}">
+                                    <input type="hidden" name="quantity" value="1">
+                                    <input type="hidden" name="redirect_to" value="checkout">
+                                    <button type="submit" class="w-full block text-center px-3 py-1.5 bg-[#0b5c2c] text-white font-bold rounded text-xs hover:bg-[#09481f] transition">
+                                        Beli Langsung
+                                    </button>
+                                </form>
+                            @else
+                                <div class="text-xs text-gray-500 font-semibold">Mode admin - katalog saja</div>
+                            @endif
+                        @else
+                            <a href="{{ route('login') }}" class="w-full block text-center px-3 py-1.5 border border-[#0b5c2c] text-[#0b5c2c] font-bold rounded text-xs hover:bg-green-50 transition">
+                                Masuk untuk membeli
+                            </a>
                         @endauth
                     </div>
                 </div>

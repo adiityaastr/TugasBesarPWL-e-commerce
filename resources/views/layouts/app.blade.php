@@ -5,7 +5,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="csrf-token" content="{{ csrf_token() }}">
 
-        <title>{{ config('app.name', 'Laravel Ecommerce') }}</title>
+        <title>{{ config('app.name', 'HerbaMart') }}</title>
 
         <!-- Fonts -->
         <link rel="preconnect" href="https://fonts.bunny.net">
@@ -61,9 +61,9 @@
                 <div class="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
                     <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
                         <div>
-                            <h3 class="font-bold text-lg text-[#03AC0E] mb-4">TokopediaClone</h3>
+                            <h3 class="font-bold text-lg text-[#0b5c2c] mb-4">HerbaMart</h3>
                             <p class="text-gray-500 text-sm leading-relaxed">
-                                Situs jual beli online terlengkap dengan berbagai pilihan toko online terpercaya. Belanja online mudah dan aman di TokopediaClone.
+                                Toko obat herbal, jamu, madu, dan suplemen alami terpercaya. Produk terkurasi untuk kesehatan keluarga.
                             </p>
                         </div>
                         <div>
@@ -77,22 +77,22 @@
                         <div>
                             <h4 class="font-bold text-gray-800 mb-4">Bantuan</h4>
                             <ul class="space-y-2 text-sm text-gray-500">
-                                <li><a href="#" class="hover:text-[#03AC0E]">Tokopedia Care</a></li>
-                                <li><a href="#" class="hover:text-[#03AC0E]">Syarat & Ketentuan</a></li>
-                                <li><a href="#" class="hover:text-[#03AC0E]">Kebijakan Privasi</a></li>
+                                <li><a href="#" class="hover:text-[#0b5c2c]">Pusat Bantuan</a></li>
+                                <li><a href="#" class="hover:text-[#0b5c2c]">Syarat & Ketentuan</a></li>
+                                <li><a href="#" class="hover:text-[#0b5c2c]">Kebijakan Privasi</a></li>
                             </ul>
                         </div>
                         <div>
                             <h4 class="font-bold text-gray-800 mb-4">Ikuti Kami</h4>
                             <div class="flex space-x-4">
-                                <a href="#" class="text-gray-400 hover:text-[#03AC0E]"><span class="sr-only">Facebook</span>FB</a>
-                                <a href="#" class="text-gray-400 hover:text-[#03AC0E]"><span class="sr-only">Instagram</span>IG</a>
-                                <a href="#" class="text-gray-400 hover:text-[#03AC0E]"><span class="sr-only">Twitter</span>TW</a>
+                                <a href="#" class="text-gray-500 hover:text-[#0b5c2c]"><span class="sr-only">Facebook</span>FB</a>
+                                <a href="#" class="text-gray-500 hover:text-[#0b5c2c]"><span class="sr-only">Instagram</span>IG</a>
+                                <a href="#" class="text-gray-500 hover:text-[#0b5c2c]"><span class="sr-only">Twitter</span>TW</a>
                             </div>
                         </div>
                     </div>
                     <div class="mt-8 border-t border-gray-200 pt-8 text-center text-sm text-gray-400">
-                        &copy; 2025 TokopediaClone. All rights reserved.
+                        &copy; 2025 HerbaMart. All rights reserved.
                     </div>
                 </div>
             </footer>

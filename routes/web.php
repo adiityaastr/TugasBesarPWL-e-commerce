@@ -6,12 +6,14 @@ use App\Http\Controllers\ProductController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 
-// Public Routes
-Route::get('/', [ProductController::class, 'index'])->name('home');
-Route::get('/products/{product}', [ProductController::class, 'show'])->name('products.show');
+// Public Routes (redirect admin away)
+Route::middleware('no_admin_shop')->group(function () {
+    Route::get('/', [ProductController::class, 'index'])->name('home');
+    Route::get('/products/{product}', [ProductController::class, 'show'])->name('products.show');
+});
 
 // Customer Routes (Auth required)
-Route::middleware(['auth', 'verified'])->group(function () {
+Route::middleware(['auth', 'verified', 'no_admin_shop'])->group(function () {
     // User Dashboard (Order History)
     Route::get('/dashboard', [OrderController::class, 'index'])->name('dashboard');
     
@@ -29,6 +31,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/orders', [OrderController::class, 'store'])->name('orders.store');
     Route::get('/orders/{order}', [OrderController::class, 'show'])->name('orders.show');
     Route::get('/orders/{order}/invoice', [OrderController::class, 'invoice'])->name('orders.invoice');
+    Route::patch('/orders/{order}/cancel', \App\Http\Controllers\OrderCancelController::class)->name('orders.cancel');
 
     // Profile Routes
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
@@ -51,6 +54,11 @@ Route::middleware(['auth', 'verified', 'admin'])->prefix('admin')->name('admin.'
     // Order Management
     Route::get('/orders', [AdminDashboardController::class, 'orders'])->name('orders.index');
     Route::patch('/orders/{order}', [AdminDashboardController::class, 'updateOrderStatus'])->name('orders.update');
+    Route::post('/orders/{order}/approve-cancellation', [AdminDashboardController::class, 'approveCancellation'])->name('orders.approve-cancellation');
+    Route::post('/orders/{order}/reject-cancellation', [AdminDashboardController::class, 'rejectCancellation'])->name('orders.reject-cancellation');
+
+    // Reports
+    Route::get('/reports', [AdminDashboardController::class, 'reports'])->name('reports.index');
 });
 
 require __DIR__.'/auth.php';

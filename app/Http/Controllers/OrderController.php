@@ -16,7 +16,12 @@ class OrderController extends Controller
      */
     public function index()
     {
-        $orders = Auth::user()->orders()->latest()->paginate(10);
+        if (Auth::user()?->role === 'admin') {
+            return redirect()->route('admin.dashboard')->with('error', 'Admin tidak dapat melakukan pembelian.');
+        }
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
+        $orders = $user->orders()->latest()->paginate(10);
         return view('orders.index', compact('orders'));
     }
 
@@ -25,6 +30,9 @@ class OrderController extends Controller
      */
     public function create()
     {
+        if (Auth::user()?->role === 'admin') {
+            return redirect()->route('admin.dashboard')->with('error', 'Admin tidak dapat melakukan pembelian.');
+        }
         $cartItems = \App\Models\Cart::with('product')->where('user_id', Auth::id())->get();
         if ($cartItems->isEmpty()) {
             return redirect()->route('cart.index')->with('error', 'Your cart is empty.');
@@ -37,10 +45,27 @@ class OrderController extends Controller
      */
     public function store(Request $request)
     {
+        if (Auth::user()?->role === 'admin') {
+            return redirect()->route('admin.dashboard')->with('error', 'Admin tidak dapat melakukan pembelian.');
+        }
         $request->validate([
             'shipping_address' => 'required|string',
+            'provinsi' => 'required|string|max:255',
+            'kota' => 'required|string|max:255',
+            'kecamatan' => 'required|string|max:255',
+            'kelurahan' => 'required|string|max:255',
+            'kode_pos' => 'required|string|max:10',
+            'shipping_method' => 'required|in:reguler,kargo,same_day',
             'payment_method' => 'required|in:bank_transfer,credit_card,cod', // Simulated
         ]);
+
+        // Hitung shipping cost berdasarkan metode pengiriman
+        $shippingCosts = [
+            'reguler' => 15000,
+            'kargo' => 10000,
+            'same_day' => 30000,
+        ];
+        $shippingCost = $shippingCosts[$request->shipping_method] ?? 15000;
 
         try {
             DB::beginTransaction();
@@ -58,6 +83,10 @@ class OrderController extends Controller
             foreach ($cartItems as $item) {
                 $product = \App\Models\Product::lockForUpdate()->find($item->product_id);
                 
+                if (!$product) {
+                    throw new \Exception("Product with ID {$item->product_id} not found. It may have been deleted.");
+                }
+                
                 if ($product->stock < $item->quantity) {
                     throw new \Exception("Product {$product->name} is out of stock.");
                 }
@@ -74,11 +103,21 @@ class OrderController extends Controller
                 ];
             }
 
+            // Total price termasuk shipping cost
+            $finalTotalPrice = $totalPrice + $shippingCost;
+
             $order = Order::create([
                 'user_id' => Auth::id(),
-                'total_price' => $totalPrice,
-                'status' => 'pending',
+                'total_price' => $finalTotalPrice,
+                'status' => 'proses',
                 'shipping_address' => $request->shipping_address,
+                'provinsi' => $request->provinsi,
+                'kota' => $request->kota,
+                'kecamatan' => $request->kecamatan,
+                'kelurahan' => $request->kelurahan,
+                'kode_pos' => $request->kode_pos,
+                'shipping_method' => $request->shipping_method,
+                'shipping_cost' => $shippingCost,
                 'payment_method' => $request->payment_method,
                 'payment_status' => 'paid', // Simulating successful payment
             ]);

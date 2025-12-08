@@ -13,6 +13,17 @@ class Order extends Model
         'user_id',
         'total_price',
         'status',
+        'cancellation_reason',
+        'shipping_address',
+        'provinsi',
+        'kota',
+        'kecamatan',
+        'kelurahan',
+        'kode_pos',
+        'shipping_method',
+        'shipping_cost',
+        'payment_method',
+        'payment_status',
     ];
 
     public function user()
