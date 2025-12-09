@@ -24,7 +24,7 @@
                             <tbody class="divide-y divide-gray-100">
                                 @forelse($orders as $order)
                                     <tr class="bg-white hover:bg-gray-50">
-                                        <td class="px-4 py-3 font-semibold text-gray-900">#{{ $order->id }}</td>
+                                        <td class="px-4 py-3 font-semibold text-gray-900">{{ $order->order_number ?? '#'.$order->id }}</td>
                                         <td class="px-4 py-3 text-gray-700">{{ $order->created_at->format('d M Y') }}</td>
                                         <td class="px-4 py-3 font-semibold text-[#0b5c2c]">Rp{{ number_format($order->total_price, 0, ',', '.') }}</td>
                                         <td class="px-4 py-3">

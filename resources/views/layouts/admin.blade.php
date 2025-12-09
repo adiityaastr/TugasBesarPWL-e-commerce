@@ -19,7 +19,10 @@
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div class="flex h-16 items-center justify-between">
                     <div class="flex items-center gap-6">
-                        <a href="{{ route('admin.dashboard') }}" class="text-2xl font-bold text-[#0b5c2c]">HerbaMart</a>
+                        <a href="{{ route('admin.dashboard') }}" class="flex items-center gap-2 text-[#0b5c2c] font-bold">
+                            <img src="{{ asset('images/herbamart-logo.svg') }}" alt="HerbaMart" class="h-8 w-auto object-contain">
+                            <span class="text-2xl leading-none">HerbaMart</span>
+                        </a>
                         <div class="hidden md:flex gap-2">
                             <a href="{{ route('admin.dashboard') }}" class="px-3 py-2 text-sm font-semibold rounded transition
                                 {{ request()->routeIs('admin.dashboard') ? 'text-[#0b5c2c] bg-green-50 border border-green-200' : 'text-gray-700 hover:text-[#0b5c2c] hover:bg-green-50' }}">

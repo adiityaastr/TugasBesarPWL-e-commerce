@@ -32,6 +32,7 @@ Route::middleware(['auth', 'verified', 'no_admin_shop'])->group(function () {
     Route::get('/orders/{order}', [OrderController::class, 'show'])->name('orders.show');
     Route::get('/orders/{order}/invoice', [OrderController::class, 'invoice'])->name('orders.invoice');
     Route::patch('/orders/{order}/cancel', \App\Http\Controllers\OrderCancelController::class)->name('orders.cancel');
+    Route::patch('/orders/{order}/complete', [OrderController::class, 'complete'])->name('orders.complete');
 
     // Profile Routes
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
@@ -56,6 +57,7 @@ Route::middleware(['auth', 'verified', 'admin'])->prefix('admin')->name('admin.'
     Route::patch('/orders/{order}', [AdminDashboardController::class, 'updateOrderStatus'])->name('orders.update');
     Route::post('/orders/{order}/approve-cancellation', [AdminDashboardController::class, 'approveCancellation'])->name('orders.approve-cancellation');
     Route::post('/orders/{order}/reject-cancellation', [AdminDashboardController::class, 'rejectCancellation'])->name('orders.reject-cancellation');
+    Route::get('/orders/{order}/label', [AdminDashboardController::class, 'label'])->name('orders.label');
 
     // Reports
     Route::get('/reports', [AdminDashboardController::class, 'reports'])->name('reports.index');

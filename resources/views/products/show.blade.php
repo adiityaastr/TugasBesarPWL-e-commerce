@@ -63,27 +63,27 @@
                         
                         @auth
                             @if(Auth::user()->role !== 'admin')
-                                @if($product->stock > 0)
-                                    <form action="{{ route('cart.store') }}" method="POST">
-                                        @csrf
-                                        <input type="hidden" name="product_id" value="{{ $product->id }}">
-                                        
-                                        <div class="flex items-center border border-gray-300 rounded mb-4 w-max">
+                            @if($product->stock > 0)
+                                <form action="{{ route('cart.store') }}" method="POST">
+                                    @csrf
+                                    <input type="hidden" name="product_id" value="{{ $product->id }}">
+                                    
+                                    <div class="flex items-center border border-gray-300 rounded mb-4 w-max">
                                             <button type="button" onclick="decrement()" class="px-3 py-1 text-gray-700 hover:bg-green-50 rounded-l">-</button>
                                             <input type="number" name="quantity" id="quantity" value="1" min="1" max="{{ $product->stock }}" class="w-12 text-center border-none p-1 text-sm focus:ring-0 text-gray-900">
                                             <button type="button" onclick="increment()" class="px-3 py-1 text-[#0b5c2c] hover:bg-green-50 rounded-r">+</button>
-                                        </div>
-                                        <p class="text-xs text-gray-500 mb-4">Stok Total: <span class="font-bold text-gray-700">{{ $product->stock }}</span></p>
+                                    </div>
+                                    <p class="text-xs text-gray-500 mb-4">Stok Total: <span class="font-bold text-gray-700">{{ $product->stock }}</span></p>
 
-                                        <div class="flex items-center justify-between mb-6">
-                                            <span class="text-gray-600 text-sm">Subtotal</span>
-                                            <span class="font-bold text-lg text-gray-900" id="subtotal">Rp{{ number_format($product->price, 0, ',', '.') }}</span>
-                                        </div>
+                                    <div class="flex items-center justify-between mb-6">
+                                        <span class="text-gray-600 text-sm">Subtotal</span>
+                                        <span class="font-bold text-lg text-gray-900" id="subtotal">Rp{{ number_format($product->price, 0, ',', '.') }}</span>
+                                    </div>
 
-                                        <div class="flex flex-col gap-2">
+                                    <div class="flex flex-col gap-2">
                                             <button type="submit" class="w-full bg-[#0b5c2c] hover:bg-[#0a4a24] text-white font-bold py-2.5 rounded-lg transition">
-                                                + Keranjang
-                                            </button>
+                                            + Keranjang
+                                        </button>
                                         </div>
                                     </form>
                                     <form action="{{ route('cart.store') }}" method="POST" class="mt-2">
@@ -94,13 +94,13 @@
                                         <button type="submit" class="w-full border border-[#0b5c2c] text-[#0b5c2c] hover:bg-[#0b5c2c] hover:text-white font-bold py-2.5 rounded-lg transition">
                                             Beli Langsung
                                         </button>
-                                    </form>
-                                @else
-                                    <div class="bg-gray-100 text-gray-500 text-center py-4 rounded-lg font-bold">
-                                        Stok Habis
-                                    </div>
-                                @endif
+                                </form>
                             @else
+                                <div class="bg-gray-100 text-gray-500 text-center py-4 rounded-lg font-bold">
+                                    Stok Habis
+                                </div>
+                            @endif
+                        @else
                                 <div class="bg-yellow-50 border border-yellow-200 text-yellow-800 text-sm rounded-lg p-4">
                                     Mode admin: hanya melihat detail produk, tidak dapat membeli.
                                 </div>
@@ -139,7 +139,7 @@
                 qtyBuyNowInput.value = qty;
             }
             if(subtotalEl) {
-                subtotalEl.innerText = formatRupiah(qty * price);
+            subtotalEl.innerText = formatRupiah(qty * price);
             }
         }
 

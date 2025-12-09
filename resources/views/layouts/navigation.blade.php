@@ -4,8 +4,9 @@
         <div class="flex justify-between items-center h-16 gap-8">
             <!-- Logo -->
             <div class="shrink-0 flex items-center">
-                <a href="{{ route('home') }}" class="text-2xl font-bold text-[#0b5c2c]">
-                    HerbaMart
+                <a href="{{ route('home') }}" class="flex items-center gap-2 text-[#0b5c2c] font-bold">
+                    <img src="{{ asset('images/herbamart-logo.svg') }}" alt="HerbaMart" class="h-8 w-auto object-contain">
+                    <span class="text-2xl leading-none">HerbaMart</span>
                 </a>
             </div>
 
@@ -28,7 +29,7 @@
                         @auth
                             @php $cartCount = \App\Models\Cart::where('user_id', Auth::id())->sum('quantity'); @endphp
                             @if($cartCount > 0)
-                                <span class="absolute -top-2 -right-2 bg-amber-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">{{ $cartCount }}</span>
+                                <span data-cart-count class="absolute -top-2 -right-2 bg-amber-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">{{ $cartCount }}</span>
                             @endif
                         @endauth
                     </a>

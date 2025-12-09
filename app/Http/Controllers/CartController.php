@@ -54,11 +54,21 @@ class CartController extends Controller
             ]);
         }
 
+        $cartCount = Cart::where('user_id', Auth::id())->sum('quantity');
+
         if ($request->redirect_to === 'checkout') {
             return redirect()->route('checkout.index');
         }
 
-        return redirect()->route('cart.index')->with('success', 'Product added to cart.');
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Produk telah ditambahkan ke keranjang.',
+                'cartCount' => $cartCount,
+            ]);
+        }
+
+        return back()->with('success', 'Produk telah ditambahkan ke keranjang.');
     }
 
     public function update(Request $request, Cart $cart)

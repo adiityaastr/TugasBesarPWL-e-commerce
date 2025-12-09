@@ -34,11 +34,6 @@
                                 $kelurahanOptions = ['Kuningan','Duri Kepa','Dago','Padangsari','Darmo'];
                                 $kodeposOptions = ['12920','11510','40135','50263','60241'];
                             @endphp
-                            <div id="api-error-message" class="hidden mb-3 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
-                                <p class="text-sm text-yellow-800">
-                                    <strong>Peringatan:</strong> Data wilayah tidak dapat dimuat. Silakan isi alamat secara manual di kolom "Alamat Lengkap" di atas.
-                                </p>
-                            </div>
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
                                 <div>
                                     <label class="block text-gray-800 text-sm font-semibold mb-2">Provinsi</label>

@@ -44,7 +44,7 @@
                             <tbody>
                                 @forelse($orders as $order)
                                     <tr class="hover:bg-gray-50 transition">
-                                        <td class="px-5 py-5 border-b border-gray-100 bg-white text-sm font-semibold text-gray-900">#{{ $order->id }}</td>
+                                        <td class="px-5 py-5 border-b border-gray-100 bg-white text-sm font-semibold text-gray-900">{{ $order->order_number ?? '#'.$order->id }}</td>
                                         <td class="px-5 py-5 border-b border-gray-100 bg-white text-sm text-gray-700">{{ $order->user->name }}</td>
                                         <td class="px-5 py-5 border-b border-gray-100 bg-white text-sm font-semibold text-gray-900">Rp{{ number_format($order->total_price, 0, ',', '.') }}</td>
                                         <td class="px-5 py-5 border-b border-gray-100 bg-white text-sm text-gray-600">{{ $order->created_at->format('d M Y H:i') }}</td>
@@ -64,6 +64,10 @@
                                                     Pengemasan
                                                 @elseif($order->status == 'pengiriman')
                                                     Pengiriman
+                                                @elseif($order->status == 'sudah_sampai')
+                                                    Sudah Sampai
+                                                @elseif($order->status == 'selesai')
+                                                    Selesai
                                                 @elseif($order->status == 'cancelled')
                                                     Dibatalkan
                                                 @else
@@ -93,22 +97,33 @@
                                                         </form>
                                                     </div>
                                                 </div>
+                                            @elseif($order->status === 'selesai')
+                                                <span class="text-xs text-gray-500">Pesanan selesai</span>
                                             @elseif($order->status !== 'cancelled')
-                                                <form action="{{ route('admin.orders.update', $order) }}" method="POST" class="flex items-center gap-2">
-                                                    @csrf
-                                                    @method('PATCH')
-                                                    <select name="status" class="text-sm border-gray-300 rounded-lg shadow-sm focus:border-[#0b5c2c] focus:ring focus:ring-[#0b5c2c] focus:ring-opacity-50 text-gray-700">
-                                                        <option value="proses" {{ $order->status == 'proses' ? 'selected' : '' }}>Proses</option>
-                                                        <option value="pengemasan" {{ $order->status == 'pengemasan' ? 'selected' : '' }}>Pengemasan</option>
-                                                        <option value="pengiriman" {{ $order->status == 'pengiriman' ? 'selected' : '' }}>Pengiriman</option>
-                                                        @if($order->status == 'pending_cancellation')
-                                                            <option value="cancelled" {{ $order->status == 'cancelled' ? 'selected' : '' }}>Dibatalkan</option>
-                                                        @endif
-                                                    </select>
-                                                    <button type="submit" class="text-xs bg-[#0b5c2c] hover:bg-[#094520] text-white font-semibold py-2 px-4 rounded-lg transition">
-                                                        Update
-                                                    </button>
-                                                </form>
+                                                <div class="flex flex-col gap-2">
+                                                    <form action="{{ route('admin.orders.update', $order) }}" method="POST" class="flex items-center gap-2">
+                                                        @csrf
+                                                        @method('PATCH')
+                                                        <select name="status" class="text-sm border-gray-300 rounded-lg shadow-sm focus:border-[#0b5c2c] focus:ring focus:ring-[#0b5c2c] focus:ring-opacity-50 text-gray-700">
+                                                            <option value="proses" {{ $order->status == 'proses' ? 'selected' : '' }}>Proses</option>
+                                                            <option value="pengemasan" {{ $order->status == 'pengemasan' ? 'selected' : '' }}>Pengemasan</option>
+                                                            <option value="pengiriman" {{ $order->status == 'pengiriman' ? 'selected' : '' }}>Pengiriman</option>
+                                                            <option value="sudah_sampai" {{ $order->status == 'sudah_sampai' ? 'selected' : '' }}>Sudah sampai</option>
+                                                            <option value="selesai" {{ $order->status == 'selesai' ? 'selected' : '' }}>Selesai (konfirmasi)</option>
+                                                            @if($order->status == 'pending_cancellation')
+                                                                <option value="cancelled" {{ $order->status == 'cancelled' ? 'selected' : '' }}>Dibatalkan</option>
+                                                            @endif
+                                                        </select>
+                                                        <button type="submit" class="text-xs bg-[#0b5c2c] hover:bg-[#094520] text-white font-semibold py-2 px-4 rounded-lg transition">
+                                                            Update
+                                                        </button>
+                                                    </form>
+                                                    <div>
+                                                        <a href="{{ route('admin.orders.label', $order) }}" target="_blank" class="inline-flex items-center gap-2 text-xs bg-gray-800 hover:bg-gray-700 text-white font-semibold py-2 px-3 rounded-lg transition">
+                                                            Cetak Resi
+                                                        </a>
+                                                    </div>
+                                                </div>
                                             @else
                                                 <span class="text-xs text-gray-500">Pesanan dibatalkan</span>
                                             @endif

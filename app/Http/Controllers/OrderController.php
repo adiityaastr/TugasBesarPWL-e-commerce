@@ -8,6 +8,7 @@ use App\Models\Product;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 class OrderController extends Controller
 {
@@ -108,8 +109,10 @@ class OrderController extends Controller
 
             $order = Order::create([
                 'user_id' => Auth::id(),
+                'order_number' => $this->generateOrderNumber(),
                 'total_price' => $finalTotalPrice,
                 'status' => 'proses',
+                'payment_status' => 'pending',
                 'shipping_address' => $request->shipping_address,
                 'provinsi' => $request->provinsi ?? null,
                 'kota' => $request->kota ?? null,
@@ -119,7 +122,6 @@ class OrderController extends Controller
                 'shipping_method' => $request->shipping_method,
                 'shipping_cost' => $shippingCost,
                 'payment_method' => $request->payment_method,
-                'payment_status' => 'paid', // Simulating successful payment
             ]);
 
             foreach ($orderItemsData as $data) {
@@ -158,5 +160,35 @@ class OrderController extends Controller
             abort(403);
         }
         return view('orders.show', compact('order'));
+    }
+
+    /**
+     * Customer confirms order completed.
+     */
+    public function complete(Order $order)
+    {
+        if ($order->user_id !== Auth::id()) {
+            abort(403);
+        }
+
+        if (!in_array($order->status, ['pengiriman', 'sudah_sampai'])) {
+            return back()->with('error', 'Pesanan belum dapat diselesaikan.');
+        }
+
+        $order->update([
+            'status' => 'selesai',
+            'payment_status' => 'released',
+        ]);
+
+        return back()->with('success', 'Pesanan telah diselesaikan. Pembayaran diteruskan ke penjual.');
+    }
+
+    private function generateOrderNumber(): string
+    {
+        do {
+            $code = 'HM-' . Str::upper(Str::random(10));
+        } while (Order::where('order_number', $code)->exists());
+
+        return $code;
     }
 }

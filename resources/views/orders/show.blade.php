@@ -7,6 +7,7 @@
                         <div>
                             <div class="text-sm text-gray-500">Tanggal</div>
                             <div class="text-lg font-semibold text-gray-900">{{ $order->created_at->format('d M Y H:i') }}</div>
+                            <div class="text-xs text-gray-500 mt-1">Order No: {{ $order->order_number ?? ('#'.$order->id) }}</div>
                             <div class="mt-3">
                                 <span class="text-sm text-gray-500">Status</span>
                                 <span class="ml-2 inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold 
@@ -24,6 +25,8 @@
                                         Pengemasan
                                     @elseif($order->status === 'pengiriman')
                                         Pengiriman
+                                    @elseif($order->status === 'sudah_sampai')
+                                        Sudah Sampai
                                     @elseif($order->status === 'cancelled')
                                         Dibatalkan
                                     @else
@@ -54,10 +57,19 @@
                         <div class="text-right">
                             <div class="text-sm text-gray-500">Total Tagihan</div>
                             <div class="text-2xl font-bold text-[#0b5c2c]">Rp{{ number_format($order->total_price, 0, ',', '.') }}</div>
-                            <div class="mt-3 space-x-2">
+                            <div class="mt-3 space-x-2 flex flex-wrap gap-2 justify-end">
                                 <a href="{{ route('orders.invoice', $order) }}" target="_blank" class="inline-flex items-center px-4 py-2 bg-gray-800 hover:bg-gray-700 text-white text-sm font-semibold rounded-lg shadow">
                                     Print Invoice
                                 </a>
+                                @if($order->status === 'sudah_sampai')
+                                <form action="{{ route('orders.complete', $order) }}" method="POST" onsubmit="return confirm('Selesaikan pesanan ini? Pembayaran akan diteruskan ke penjual.');">
+                                    @csrf
+                                    @method('PATCH')
+                                    <button type="submit" class="inline-flex items-center px-4 py-2 bg-[#0b5c2c] hover:bg-[#094520] text-white text-sm font-semibold rounded-lg shadow">
+                                        Selesaikan Pesanan
+                                    </button>
+                                </form>
+                                @endif
                             </div>
                         </div>
                     </div>

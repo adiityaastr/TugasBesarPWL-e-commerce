@@ -20,7 +20,7 @@ class DashboardController extends Controller
         // Data untuk grafik pendapatan per bulan (6 bulan terakhir)
         $monthlyRevenue = Order::selectRaw('DATE_FORMAT(created_at, "%Y-%m") as month, SUM(total_price) as revenue')
             ->where('created_at', '>=', now()->subMonths(6))
-            ->where('status', '!=', 'cancelled')
+            ->where('status', 'selesai')
             ->groupBy('month')
             ->orderBy('month')
             ->get();
@@ -33,7 +33,7 @@ class DashboardController extends Controller
         // Data untuk grafik produk terlaris (top 5)
         $topProducts = \App\Models\OrderItem::selectRaw('order_items.product_id, SUM(order_items.quantity) as total_sold')
             ->join('orders', 'order_items.order_id', '=', 'orders.id')
-            ->where('orders.status', '!=', 'cancelled')
+            ->where('orders.status', 'selesai')
             ->groupBy('order_items.product_id')
             ->orderByDesc('total_sold')
             ->take(5)
@@ -57,8 +57,8 @@ class DashboardController extends Controller
         })->toArray();
         $statusData = $orderStatuses->pluck('count')->toArray();
 
-        // Total pendapatan
-        $totalRevenue = Order::where('status', '!=', 'cancelled')->sum('total_price');
+        // Total pendapatan (hanya pesanan selesai)
+        $totalRevenue = Order::where('status', 'selesai')->sum('total_price');
 
         return view('admin.dashboard', compact(
             'totalOrders', 
@@ -81,18 +81,41 @@ class DashboardController extends Controller
         return view('admin.orders.index', compact('orders'));
     }
 
+    public function label(Order $order)
+    {
+        // Admin only (middleware already applied)
+        $order->load(['user', 'items.product']);
+        return view('admin.orders.label', compact('order'));
+    }
+
     public function updateOrderStatus(Request $request, Order $order)
     {
         $request->validate([
-            'status' => 'required|in:proses,pengemasan,pengiriman,cancelled',
+            'status' => 'required|in:proses,pengemasan,pengiriman,sudah_sampai,selesai,cancelled',
         ]);
+
+        // Jika sudah selesai/released, tidak bisa diubah lagi
+        if ($order->status === 'selesai' || $order->payment_status === 'released') {
+            return back()->with('error', 'Pesanan sudah selesai dan tidak dapat diubah lagi.');
+        }
 
         // Jika status cancelled dipilih, pastikan ada pending_cancellation
         if ($request->status === 'cancelled' && $order->status !== 'pending_cancellation') {
             return back()->with('error', 'Pembatalan hanya bisa dilakukan jika pembeli sudah mengajukan pembatalan.');
         }
 
+        // Jika admin menandai sudah sampai, tunggu konfirmasi pembeli / auto-release 3 hari (scheduler)
+        if ($request->status === 'sudah_sampai') {
+            $order->update(['status' => 'sudah_sampai']);
+            return back()->with('success', 'Status diperbarui ke sudah sampai. Menunggu konfirmasi pembeli atau auto-selesai 3 hari.');
+        }
+
         $order->update(['status' => $request->status]);
+
+        // Jika status selesai, release pembayaran
+        if ($request->status === 'selesai') {
+            $order->update(['payment_status' => 'released']);
+        }
 
         return back()->with('success', 'Status pesanan berhasil diperbarui.');
     }
@@ -146,10 +169,11 @@ class DashboardController extends Controller
 
         // Hitung statistik
         $totalOrders = $orders->count();
-        $totalRevenue = $orders->where('status', '!=', 'cancelled')->sum('total_price');
         $totalCancelled = $orders->where('status', 'cancelled')->count();
         // Pesanan yang sudah dikirim (belum tentu selesai, tapi sudah dalam proses pengiriman)
         $totalShipped = $orders->where('status', 'pengiriman')->count();
+        // Pendapatan hanya dari pesanan selesai
+        $totalRevenue = $orders->where('status', 'selesai')->sum('total_price');
 
         return view('admin.reports.index', compact('orders', 'totalOrders', 'totalRevenue', 'totalCancelled', 'totalShipped'));
     }

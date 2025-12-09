@@ -32,11 +32,46 @@ class ProductController extends Controller
     {
         $query = Product::query();
 
-        if ($request->filled('category')) {
-            $query->where('category', $request->category);
+        // Dukungan multi-kategori
+        $selectedCategories = collect((array) $request->input('categories', $request->input('category')))->filter()->values();
+        if ($selectedCategories->isNotEmpty()) {
+            $query->whereIn('category', $selectedCategories);
         }
 
-        $products = $query->latest()->paginate(12)->withQueryString();
+        // Sorting
+        $sort = $request->input('sort', 'latest');
+        $sortApplied = false;
+
+        // Best selling (join ke order_items + orders selesai)
+        if ($sort === 'best_selling') {
+            $salesSub = \DB::table('order_items')
+                ->selectRaw('order_items.product_id, SUM(order_items.quantity) as total_sold')
+                ->join('orders', 'order_items.order_id', '=', 'orders.id')
+                ->where('orders.status', 'selesai')
+                ->groupBy('order_items.product_id');
+
+            $query->leftJoinSub($salesSub, 'sales', function ($join) {
+                $join->on('products.id', '=', 'sales.product_id');
+            })->select('products.*', \DB::raw('COALESCE(sales.total_sold, 0) as total_sold'))
+              ->orderByDesc('total_sold');
+
+            $sortApplied = true;
+        } elseif ($sort === 'price_asc') {
+            $query->orderBy('price', 'asc');
+            $sortApplied = true;
+        } elseif ($sort === 'price_desc') {
+            $query->orderBy('price', 'desc');
+            $sortApplied = true;
+        } elseif ($sort === 'rating' && \Schema::hasColumn('products', 'rating')) {
+            $query->orderBy('rating', 'desc');
+            $sortApplied = true;
+        }
+
+        if (!$sortApplied) {
+            $query->latest();
+        }
+
+        $products = $query->paginate(12)->withQueryString();
 
         $categories = Product::select('category')
             ->whereNotNull('category')
@@ -44,7 +79,12 @@ class ProductController extends Controller
             ->orderBy('category')
             ->pluck('category');
 
-        return view('products.index', compact('products', 'categories'));
+        return view('products.index', [
+            'products' => $products,
+            'categories' => $categories,
+            'selectedCategories' => $selectedCategories,
+            'selectedSort' => $sort,
+        ]);
     }
 
     /**

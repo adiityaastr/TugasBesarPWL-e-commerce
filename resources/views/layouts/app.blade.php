@@ -84,10 +84,22 @@
                         </div>
                         <div>
                             <h4 class="font-bold text-gray-800 mb-4">Ikuti Kami</h4>
-                            <div class="flex space-x-4">
-                                <a href="#" class="text-gray-500 hover:text-[#0b5c2c]"><span class="sr-only">Facebook</span>FB</a>
-                                <a href="#" class="text-gray-500 hover:text-[#0b5c2c]"><span class="sr-only">Instagram</span>IG</a>
-                                <a href="#" class="text-gray-500 hover:text-[#0b5c2c]"><span class="sr-only">Twitter</span>TW</a>
+                            <div class="flex space-x-4 text-gray-500">
+                                <a href="#" class="hover:text-[#0b5c2c]" aria-label="Facebook">
+                                    <svg class="h-5 w-5" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                                        <path d="M22 12a10 10 0 1 0-11.5 9.9v-7h-2v-2.9h2v-2.2c0-2 1.2-3.1 3-3.1.9 0 1.8.1 1.8.1v2h-1c-1 0-1.3.6-1.3 1.2v1.9h2.3L14 14.9h-2v7A10 10 0 0 0 22 12Z"/>
+                                    </svg>
+                                </a>
+                                <a href="#" class="hover:text-[#0b5c2c]" aria-label="Instagram">
+                                    <svg class="h-5 w-5" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                                        <path d="M7 3h10a4 4 0 0 1 4 4v10a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4V7a4 4 0 0 1 4-4Zm0 2a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2H7Zm5 2.5A4.5 4.5 0 1 1 7.5 12 4.5 4.5 0 0 1 12 7.5Zm0 2A2.5 2.5 0 1 0 14.5 12 2.5 2.5 0 0 0 12 9.5Zm5.25-3.75a.75.75 0 1 1-.75.75.75.75 0 0 1 .75-.75Z"/>
+                                    </svg>
+                                </a>
+                                <a href="#" class="hover:text-[#0b5c2c]" aria-label="Twitter">
+                                    <svg class="h-5 w-5" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                                        <path d="M22 5.8a6 6 0 0 1-1.8.5 3 3 0 0 0 1.3-1.7 6 6 0 0 1-1.9.7 3 3 0 0 0-5.2 2v.6A8.5 8.5 0 0 1 4 4.7a3 3 0 0 0 .9 4 3 3 0 0 1-1.3-.3v.1a3 3 0 0 0 2.4 3 3 3 0 0 1-1.3.1 3 3 0 0 0 2.8 2 6 6 0 0 1-3.7 1.3H3.5A8.5 8.5 0 0 0 8 18a8.5 8.5 0 0 0 8.6-8.5v-.4A6 6 0 0 0 22 5.8Z"/>
+                                    </svg>
+                                </a>
                             </div>
                         </div>
                     </div>

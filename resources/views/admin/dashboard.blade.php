@@ -73,16 +73,16 @@
                         </a>
                     </div>
                     <div class="overflow-x-auto">
-                        <table class="min-w-full leading-normal">
-                            <thead>
-                                <tr>
+                     <table class="min-w-full leading-normal">
+                        <thead>
+                            <tr>
                                     <th class="px-5 py-3 border-b border-gray-200 bg-gray-50 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Order ID</th>
                                     <th class="px-5 py-3 border-b border-gray-200 bg-gray-50 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Pelanggan</th>
                                     <th class="px-5 py-3 border-b border-gray-200 bg-gray-50 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Total</th>
                                     <th class="px-5 py-3 border-b border-gray-200 bg-gray-50 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Status</th>
                                     <th class="px-5 py-3 border-b border-gray-200 bg-gray-50 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Aksi</th>
-                                </tr>
-                            </thead>
+                            </tr>
+                        </thead>
                             <tbody class="divide-y divide-gray-100">
                                 @forelse($recentOrders as $order)
                                     <tr class="hover:bg-gray-50 transition">
@@ -120,11 +120,11 @@
                                     <tr>
                                         <td colspan="5" class="px-5 py-8 text-center text-gray-500">
                                             Belum ada pesanan.
-                                        </td>
-                                    </tr>
+                                    </td>
+                                </tr>
                                 @endforelse
-                            </tbody>
-                        </table>
+                        </tbody>
+                    </table>
                     </div>
                 </div>
             </div>

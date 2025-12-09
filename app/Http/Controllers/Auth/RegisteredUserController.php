@@ -45,6 +45,8 @@ class RegisteredUserController extends Controller
 
         Auth::login($user);
 
-        return redirect(route('dashboard', absolute: false));
+        $fallbackRoute = ($user && $user->role === 'admin') ? route('admin.dashboard', absolute: false) : route('home', absolute: false);
+
+        return redirect($fallbackRoute);
     }
 }
