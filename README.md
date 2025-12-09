@@ -1,3 +1,92 @@
+# HerbaMart E-Commerce (Laravel)
+
+Toko daring produk herbal (jamu, madu, minyak atsiri, suplemen, aromaterapi) dengan pemisahan peran penjual/pembeli, checkout beralamat dinamis (wilayah Indonesia), laporan penjualan, dan alur status pesanan hingga rilis pembayaran.
+
+## Fitur Utama
+- **Tema HerbaMart**: branding hijau, logo, ikon sosial.
+- **Katalog & Filter**:
+  - Multi-kategori (checkbox pills) dengan ikon per kategori.
+  - Sort: terbaru, harga tertinggi/terendah, penjualan terbanyak, rating (jika kolom tersedia).
+  - AJAX tanpa reload untuk filter/sort/paginasi/tambah keranjang.
+- **Keranjang & Beli Langsung**: tombol tambah keranjang dan beli langsung; badge keranjang diperbarui via AJAX.
+- **Checkout**:
+  - Alamat detail (provinsi/kota/kecamatan/kelurahan/kode pos) via API wilayah; fallback manual saat gagal.
+  - Pilihan metode pengiriman dengan ongkir.
+  - Pembayaran disimulasikan (payment_status awal: `pending`).
+- **Pesanan Pembeli**:
+  - Status: proses → pengemasan → pengiriman → sudah_sampai → selesai; pembatalan (pending_cancellation → cancelled).
+  - Konfirmasi “Selesaikan pesanan” muncul setelah status “sudah_sampai”; rilis pembayaran ke penjual.
+  - Invoice dan label resi dapat dicetak.
+- **Admin/Penjual**:
+  - Manajemen produk, pesanan, laporan penjualan, grafik (Chart.js).
+  - Update status, cetak resi, lihat permintaan pembatalan.
+  - Total pendapatan hanya dari pesanan `selesai`.
+- **Order Number**: format acak `HM-XXXXXXXXXX` per pesanan.
+- **Scheduler**: auto-release pembayaran setelah `sudah_sampai` > 3 hari (set ke `selesai`, payment_status `released`).
+- **Role-based access**: admin diarahkan ke dashboard, pembeli ke katalog/home; admin tidak bisa checkout.
+
+## Prasyarat
+- PHP 8.1+ dan Composer
+- Node.js 16+ dan npm
+- MySQL/MariaDB
+
+## Setup & Jalankan
+1. Kloning repo dan masuk ke direktori.
+2. Install dependency backend:
+   ```bash
+   composer install
+   ```
+3. Install dependency frontend:
+   ```bash
+   npm install
+   ```
+4. Salin env:
+   ```bash
+   cp .env.example .env
+   ```
+5. Set koneksi database di `.env`, lalu generate key:
+   ```bash
+   php artisan key:generate
+   ```
+6. Migrasi + seed (termasuk kategori & sample produk herbal):
+   ```bash
+   php artisan migrate --seed
+   ```
+7. Build asset (dev server atau production):
+   ```bash
+   npm run dev   # atau npm run build
+   ```
+8. Jalankan server:
+   ```bash
+   php artisan serve
+   ```
+9. (Opsional, untuk auto-release 3 hari) Jalankan scheduler:
+   ```bash
+   php artisan schedule:work
+   ```
+   atau set cron: `* * * * * php /path/to/artisan schedule:run`.
+
+## Alur Status & Pembayaran
+- Admin/penjual dapat set status hingga `sudah_sampai`.
+- Pembeli menekan “Selesaikan Pesanan” (status `selesai`, `payment_status=released`).
+- Jika pembeli tidak menekan, scheduler otomatis set `selesai` + release setelah 3 hari di status `sudah_sampai`.
+- Pesanan `selesai` atau `payment_status=released` tidak dapat diubah lagi oleh penjual.
+
+## Endpoint Penting
+- Pembeli: `/` katalog, `/cart`, `/checkout`, `/orders`, `/orders/{order}`, `/orders/{order}/invoice`.
+- Admin: `/admin`, `/admin/products`, `/admin/orders`, `/admin/orders/{order}/label`, `/admin/reports`.
+
+## Catatan Teknis
+- `order_number` disimpan di kolom `orders.order_number` (unik).
+- `payment_status` default `pending`, dirilis (`released`) saat pesanan selesai atau auto-release.
+- Filter/sort/paginasi/tambah keranjang memakai fetch dengan `X-Requested-With: XMLHttpRequest`.
+- Revenue di dashboard/laporan hanya dari pesanan `selesai`.
+
+## Akun & Seed
+- Seeder membuat user & sample produk herbal (lihat `database/seeders/UserSeeder.php`, `ProductSeeder.php`, `CategorySeeder.php`). Sesuaikan credential di seeder jika perlu.
+
+## Lisensi
+Internal/project-based. Sesuaikan sesuai kebutuhan.*** End Patch*** End Patch ***!
 <p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
 
 <p align="center">
