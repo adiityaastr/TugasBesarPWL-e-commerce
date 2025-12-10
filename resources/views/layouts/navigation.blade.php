@@ -43,7 +43,11 @@
                         <x-slot name="trigger">
                             <button class="flex items-center gap-2 hover:bg-gray-50 rounded-lg p-1 transition duration-150 ease-in-out focus:outline-none">
                                 <div class="h-8 w-8 rounded-full bg-gray-200 overflow-hidden shrink-0 border border-gray-300">
-                                    <svg class="h-full w-full text-gray-400" fill="currentColor" viewBox="0 0 24 24"><path d="M24 20.993V24H0v-2.996A14.977 14.977 0 0112.004 15c4.904 0 9.26 2.354 11.996 5.993zM16.002 8.999a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
+                                    @if(Auth::user()->profile_photo_path)
+                                        <img src="{{ Storage::url(Auth::user()->profile_photo_path) }}" alt="{{ Auth::user()->name }}" class="h-full w-full object-cover">
+                                    @else
+                                        <svg class="h-full w-full text-gray-400" fill="currentColor" viewBox="0 0 24 24"><path d="M24 20.993V24H0v-2.996A14.977 14.977 0 0112.004 15c4.904 0 9.26 2.354 11.996 5.993zM16.002 8.999a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
+                                    @endif
                                 </div>
                                 <div class="hidden md:block text-left">
                                     <div class="text-sm font-medium text-gray-700 truncate max-w-[100px]">{{ Auth::user()->name }}</div>

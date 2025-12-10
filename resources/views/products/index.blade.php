@@ -25,25 +25,14 @@
                     <a href="{{ route('home') }}" class="text-sm text-[#0b5c2c] font-semibold hover:underline">Reset</a>
                 @endif
             </div>
-            @php
-                $catIcons = [
-                    'Jamu Tradisional' => '<path d="M8 3h8v2H8V3Zm4 14a4 4 0 0 0 4-4V9a4 4 0 1 0-8 0v4a4 4 0 0 0 4 4Zm-6 0h12v2H6v-2Z"/>',
-                    'Suplemen Alami' => '<path d="M5 5a5 5 0 0 1 10 0v10a5 5 0 1 1-10 0V5Zm8 0a3 3 0 0 0-6 0v10a3 3 0 1 0 6 0V5Zm4.5 2H18a2 2 0 0 0-2 2v8a4 4 0 0 0 4 4v-2a2 2 0 0 1-2-2v-4h2v-2h-2V9.5a.5.5 0 0 1 .5-.5H21V7h-3.5Z"/>',
-                    'Madu & Propolis' => '<path d="M12 2 6 5v6c0 3.9 2.4 7.6 6 9 3.6-1.4 6-5.1 6-9V5l-6-3Zm0 2.2 4 2v4.8c0 2.8-1.6 5.5-4 6.7-2.4-1.2-4-3.9-4-6.7V6.2l4-2Z"/>',
-                    'Teh & Infus Herbal' => '<path d="M6 5h12v6a6 6 0 0 1-6 6H8a4 4 0 0 1-4-4V5h2Zm2 10h2a4 4 0 0 0 4-4V7H8v8Zm10-8h2v4a5 5 0 0 1-5 5h-1v-2h1a3 3 0 0 0 3-3V7Z"/>',
-                    'Minyak Atsiri' => '<path d="M12 2 8 8v7a4 4 0 0 0 8 0V8l-4-6Zm0 3.2 2 3V15a2 2 0 0 1-4 0V8.2l2-3ZM7 21h10v-2H7v2Z"/>',
-                    'Aromaterapi' => '<path d="M10 2h4l-1 3 1 3h-4l1-3-1-3Zm-3 8h10l-1.5 8h-7L7 10Zm2.2 2 1 6h3.6l1-6h-5.6Z"/>',
-                ];
-            @endphp
+
             <form method="GET" action="{{ route('home') }}" id="category-form" class="flex flex-wrap gap-2">
                 @forelse($categories as $cat)
                     @php $checked = $selectedCategories && $selectedCategories->contains($cat); @endphp
                     <label class="inline-flex items-center gap-2 px-3 py-2 border rounded-full text-sm font-semibold cursor-pointer transition
                         {{ $checked ? 'border-[#0b5c2c] bg-green-50 text-[#0b5c2c]' : 'border-gray-200 text-gray-700 hover:border-[#0b5c2c] hover:text-[#0b5c2c]' }}">
                         <input type="checkbox" name="categories[]" value="{{ $cat }}" class="sr-only" {{ $checked ? 'checked' : '' }} onchange="document.getElementById('category-form').submit();">
-                        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-                            {!! $catIcons[$cat] ?? '<path d="M5 12c0-3.87 3.13-7 7-7a7 7 0 0 1 6.93 6.06c-1.14.7-2.51 1.32-3.93 1.32-1.27 0-2.29-.53-3-1.17-.71.64-1.73 1.17-3 1.17-1.23 0-2.57-.58-3.7-1.26-.15.62-.3 1.28-.3 1.88 0 2.55 1.33 4.9 3.4 6.22l.57.37-.23.59c-.35.91-1.18 1.82-2.4 2.73 3.11-.1 5.31-1.08 6.6-3.03a6.98 6.98 0 0 0 3.06-5.86c0-.52-.05-1.04-.14-1.56.49-.1.98-.25 1.46-.44.33-.13.65-.28.97-.44A7 7 0 0 1 12 19c-3.87 0-7-3.13-7-7Z"/>' !!}
-                        </svg>
+
                         <span class="whitespace-nowrap">{{ $cat }}</span>
                     </label>
                 @empty

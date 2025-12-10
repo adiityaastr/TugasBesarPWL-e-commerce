@@ -100,14 +100,18 @@ class DashboardController extends Controller
         }
 
         // Jika status cancelled dipilih, pastikan ada pending_cancellation
-        if ($request->status === 'cancelled' && $order->status !== 'pending_cancellation') {
-            return back()->with('error', 'Pembatalan hanya bisa dilakukan jika pembeli sudah mengajukan pembatalan.');
-        }
-
-        // Jika admin menandai sudah sampai, tunggu konfirmasi pembeli / auto-release 3 hari (scheduler)
-        if ($request->status === 'sudah_sampai') {
-            $order->update(['status' => 'sudah_sampai']);
-            return back()->with('success', 'Status diperbarui ke sudah sampai. Menunggu konfirmasi pembeli atau auto-selesai 3 hari.');
+        if ($request->status === 'cancelled') {
+            if ($order->status !== 'pending_cancellation') {
+                return back()->with('error', 'Pembatalan hanya bisa dilakukan jika pembeli sudah mengajukan pembatalan.');
+            }
+            
+            // Restore stock
+            foreach ($order->items as $item) {
+                $product = $item->product;
+                if ($product) {
+                    $product->increment('stock', $item->quantity);
+                }
+            }
         }
 
         $order->update(['status' => $request->status]);
@@ -126,9 +130,17 @@ class DashboardController extends Controller
             return back()->with('error', 'Pesanan ini tidak memiliki permintaan pembatalan.');
         }
 
+        // Restore stock
+        foreach ($order->items as $item) {
+            $product = $item->product;
+            if ($product) {
+                $product->increment('stock', $item->quantity);
+            }
+        }
+
         $order->update(['status' => 'cancelled']);
 
-        return back()->with('success', 'Pembatalan pesanan telah disetujui.');
+        return back()->with('success', 'Pembatalan pesanan telah disetujui dan stok produk telah dikembalikan.');
     }
 
     public function rejectCancellation(Request $request, Order $order)

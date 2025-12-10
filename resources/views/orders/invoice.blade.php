@@ -42,7 +42,7 @@
             <div class="box">
                 <div class="section-title">Kepada</div>
                 <div style="margin-top:8px;">
-                    <div><strong>{{ $order->user->name }}</strong></div>
+                    <div><strong>{{ $order->user->full_name ?? $order->user->name }}</strong></div>
                     <div class="muted">{{ $order->user->email }}</div>
                 </div>
             </div>

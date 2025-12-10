@@ -86,9 +86,9 @@
                             <tbody>
                                 @forelse($orders as $order)
                                     <tr class="hover:bg-gray-50 transition">
-                                        <td class="px-4 py-3 border-b border-gray-100 bg-white text-sm font-semibold text-gray-800">#{{ $order->id }}</td>
+                                        <td class="px-4 py-3 border-b border-gray-100 bg-white text-sm font-semibold text-gray-800">{{ $order->order_number ?? '#'.$order->id }}</td>
                                         <td class="px-4 py-3 border-b border-gray-100 bg-white text-sm text-gray-700">{{ $order->created_at->format('d M Y') }}</td>
-                                        <td class="px-4 py-3 border-b border-gray-100 bg-white text-sm text-gray-700">{{ $order->user->name }}</td>
+                                        <td class="px-4 py-3 border-b border-gray-100 bg-white text-sm text-gray-700">{{ $order->user->full_name ?? $order->user->name }}</td>
                                         <td class="px-4 py-3 border-b border-gray-100 bg-white text-sm text-gray-700">{{ $order->items->sum('quantity') }} item</td>
                                         <td class="px-4 py-3 border-b border-gray-100 bg-white text-sm font-semibold text-gray-900">Rp{{ number_format($order->total_price, 0, ',', '.') }}</td>
                                         <td class="px-4 py-3 border-b border-gray-100 bg-white text-sm">

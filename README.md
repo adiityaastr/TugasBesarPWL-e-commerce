@@ -1,148 +1,115 @@
-# HerbaMart E-Commerce (Laravel)
-
-Toko daring produk herbal (jamu, madu, minyak atsiri, suplemen, aromaterapi) dengan pemisahan peran penjual/pembeli, checkout beralamat dinamis (wilayah Indonesia), laporan penjualan, dan alur status pesanan hingga rilis pembayaran.
-
-## Fitur Utama
-- **Tema HerbaMart**: branding hijau, logo, ikon sosial.
-- **Katalog & Filter**:
-  - Multi-kategori (checkbox pills) dengan ikon per kategori.
-  - Sort: terbaru, harga tertinggi/terendah, penjualan terbanyak, rating (jika kolom tersedia).
-  - AJAX tanpa reload untuk filter/sort/paginasi/tambah keranjang.
-- **Keranjang & Beli Langsung**: tombol tambah keranjang dan beli langsung; badge keranjang diperbarui via AJAX.
-- **Checkout**:
-  - Alamat detail (provinsi/kota/kecamatan/kelurahan/kode pos) via API wilayah; fallback manual saat gagal.
-  - Pilihan metode pengiriman dengan ongkir.
-  - Pembayaran disimulasikan (payment_status awal: `pending`).
-- **Pesanan Pembeli**:
-  - Status: proses → pengemasan → pengiriman → sudah_sampai → selesai; pembatalan (pending_cancellation → cancelled).
-  - Konfirmasi “Selesaikan pesanan” muncul setelah status “sudah_sampai”; rilis pembayaran ke penjual.
-  - Invoice dan label resi dapat dicetak.
-- **Admin/Penjual**:
-  - Manajemen produk, pesanan, laporan penjualan, grafik (Chart.js).
-  - Update status, cetak resi, lihat permintaan pembatalan.
-  - Total pendapatan hanya dari pesanan `selesai`.
-- **Order Number**: format acak `HM-XXXXXXXXXX` per pesanan.
-- **Scheduler**: auto-release pembayaran setelah `sudah_sampai` > 3 hari (set ke `selesai`, payment_status `released`).
-- **Role-based access**: admin diarahkan ke dashboard, pembeli ke katalog/home; admin tidak bisa checkout.
-
-## Prasyarat
-- PHP 8.1+ dan Composer
-- Node.js 16+ dan npm
-- MySQL/MariaDB
-
-## Setup & Jalankan
-1. Kloning repo dan masuk ke direktori.
-2. Install dependency backend:
-   ```bash
-   composer install
-   ```
-3. Install dependency frontend:
-   ```bash
-   npm install
-   ```
-4. Salin env:
-   ```bash
-   cp .env.example .env
-   ```
-5. Set koneksi database di `.env`, lalu generate key:
-   ```bash
-   php artisan key:generate
-   ```
-6. Migrasi + seed (termasuk kategori & sample produk herbal):
-   ```bash
-   php artisan migrate --seed
-   ```
-7. Build asset (dev server atau production):
-   ```bash
-   npm run dev   # atau npm run build
-   ```
-8. Jalankan server:
-   ```bash
-   php artisan serve
-   ```
-9. (Opsional, untuk auto-release 3 hari) Jalankan scheduler:
-   ```bash
-   php artisan schedule:work
-   ```
-   atau set cron: `* * * * * php /path/to/artisan schedule:run`.
-
-## Alur Status & Pembayaran
-- Admin/penjual dapat set status hingga `sudah_sampai`.
-- Pembeli menekan “Selesaikan Pesanan” (status `selesai`, `payment_status=released`).
-- Jika pembeli tidak menekan, scheduler otomatis set `selesai` + release setelah 3 hari di status `sudah_sampai`.
-- Pesanan `selesai` atau `payment_status=released` tidak dapat diubah lagi oleh penjual.
-
-## Endpoint Penting
-- Pembeli: `/` katalog, `/cart`, `/checkout`, `/orders`, `/orders/{order}`, `/orders/{order}/invoice`.
-- Admin: `/admin`, `/admin/products`, `/admin/orders`, `/admin/orders/{order}/label`, `/admin/reports`.
-
-## Catatan Teknis
-- `order_number` disimpan di kolom `orders.order_number` (unik).
-- `payment_status` default `pending`, dirilis (`released`) saat pesanan selesai atau auto-release.
-- Filter/sort/paginasi/tambah keranjang memakai fetch dengan `X-Requested-With: XMLHttpRequest`.
-- Revenue di dashboard/laporan hanya dari pesanan `selesai`.
-
-## Akun & Seed
-- Seeder membuat user & sample produk herbal (lihat `database/seeders/UserSeeder.php`, `ProductSeeder.php`, `CategorySeeder.php`). Sesuaikan credential di seeder jika perlu.
-
-## Lisensi
-Internal/project-based. Sesuaikan sesuai kebutuhan.*** End Patch*** End Patch ***!
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
-
 <p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
+  <a href="#" target="_blank">
+    <img src="public/images/herbamart-logo.svg" width="200" alt="Herbamart Logo">
+  </a>
 </p>
 
-## About Laravel
+# Herbamart E-commerce
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+Ini adalah proyek e-commerce yang dibangun menggunakan framework Laravel. Aplikasi ini menyediakan fungsionalitas dasar toko online, termasuk manajemen produk, keranjang belanja, proses checkout, dan panel admin.
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+## Fitur Utama
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+-   **Otentikasi Pengguna:** Pengguna dapat mendaftar, login, dan mengelola profil mereka.
+-   **Katalog Produk:** Menampilkan daftar produk dengan detail dan pencarian.
+-   **Keranjang Belanja:** Pengguna dapat menambahkan produk ke keranjang belanja.
+-   **Proses Checkout:** Proses pemesanan untuk membeli produk di keranjang.
+-   **Riwayat Pesanan:** Pengguna dapat melihat riwayat pesanan mereka.
+-   **Panel Admin:** Antarmuka terpisah untuk admin mengelola produk dan pesanan.
+-   **Ulasan Produk:** Pengguna dapat memberikan ulasan untuk produk yang telah mereka beli.
 
-## Learning Laravel
+## Teknologi yang Digunakan
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework. You can also check out [Laravel Learn](https://laravel.com/learn), where you will be guided through building a modern Laravel application.
+-   **Backend:** PHP 8.2, Laravel 12
+-   **Frontend:** Vite, Tailwind CSS, Alpine.js
+-   **Database:** Kompatibel dengan MySQL, PostgreSQL, dll. (dikonfigurasi di `.env`)
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+## Panduan Instalasi
 
-## Laravel Sponsors
+Berikut adalah langkah-langkah untuk menjalankan proyek ini di lingkungan lokal Anda.
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+### Prasyarat
 
-### Premium Partners
+-   PHP >= 8.2
+-   Composer
+-   Node.js & NPM
+-   Database Server (misalnya MySQL)
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+### Langkah-langkah Instalasi
 
-## Contributing
+1.  **Clone repository:**
+    ```bash
+    git clone https://github.com/username/TugasBesarPWL-e-commerce.git
+    cd TugasBesarPWL-e-commerce
+    ```
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+2.  **Install dependensi PHP:**
+    ```bash
+    composer install
+    ```
 
-## Code of Conduct
+3.  **Install dependensi Node.js:**
+    ```bash
+    npm install
+    ```
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+4.  **Buat file environment:**
+    Salin file `.env.example` menjadi `.env`.
+    ```bash
+    cp .env.example .env
+    ```
 
-## Security Vulnerabilities
+5.  **Generate kunci aplikasi:**
+    ```bash
+    php artisan key:generate
+    ```
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+6.  **Konfigurasi database:**
+    Buka file `.env` dan sesuaikan pengaturan koneksi database Anda (DB_DATABASE, DB_USERNAME, DB_PASSWORD).
+    ```ini
+    DB_CONNECTION=mysql
+    DB_HOST=127.0.0.1
+    DB_PORT=3306
+    DB_DATABASE=herbamart
+    DB_USERNAME=root
+    DB_PASSWORD=
+    ```
 
-## License
+7.  **Jalankan migrasi database:**
+    Perintah ini akan membuat semua tabel yang diperlukan dalam database Anda.
+    ```bash
+    php artisan migrate
+    ```
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+8.  **Jalankan database seeder:**
+    Perintah ini akan mengisi database dengan data awal, termasuk akun admin dan pengguna.
+    ```bash
+    php artisan db:seed
+    ```
+
+## Menjalankan Aplikasi
+
+1.  **Jalankan build asset frontend (Vite):**
+    ```bash
+    npm run dev
+    ```
+
+2.  **Jalankan server pengembangan Laravel:**
+    Buka terminal baru dan jalankan perintah berikut:
+    ```bash
+    php artisan serve
+    ```
+
+Aplikasi sekarang akan berjalan di `http://127.0.0.1:8000`.
+
+## Akun Default
+
+Setelah menjalankan database seeder, Anda dapat login menggunakan akun berikut:
+
+-   **Admin:**
+    -   **Email:** `admin@example.com`
+    -   **Password:** `password`
+
+-   **Customer:**
+    -   **Email:** `user@example.com`
+    -   **Password:** `password`

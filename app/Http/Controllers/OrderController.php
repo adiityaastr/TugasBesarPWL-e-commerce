@@ -165,7 +165,7 @@ class OrderController extends Controller
     /**
      * Customer confirms order completed.
      */
-    public function complete(Order $order)
+    public function complete(Request $request, Order $order)
     {
         if ($order->user_id !== Auth::id()) {
             abort(403);
@@ -175,12 +175,40 @@ class OrderController extends Controller
             return back()->with('error', 'Pesanan belum dapat diselesaikan.');
         }
 
-        $order->update([
-            'status' => 'selesai',
-            'payment_status' => 'released',
+        $request->validate([
+            'reviews' => 'nullable|array',
+            'reviews.*.product_id' => 'required|exists:products,id',
+            'reviews.*.rating' => 'required|integer|min:1|max:5',
+            'reviews.*.comment' => 'nullable|string',
+            'reviews.*.image' => 'nullable|image|max:2048',
         ]);
 
-        return back()->with('success', 'Pesanan telah diselesaikan. Pembayaran diteruskan ke penjual.');
+        DB::transaction(function () use ($order, $request) {
+            if ($request->has('reviews')) {
+                foreach ($request->reviews as $reviewData) {
+                    $imagePath = null;
+                    if (isset($reviewData['image']) && $reviewData['image'] instanceof \Illuminate\Http\UploadedFile) {
+                        $imagePath = $reviewData['image']->store('review-images', 'public');
+                    }
+
+                    \App\Models\Review::create([
+                        'user_id' => Auth::id(),
+                        'product_id' => $reviewData['product_id'],
+                        'order_id' => $order->id,
+                        'rating' => $reviewData['rating'],
+                        'comment' => $reviewData['comment'] ?? null,
+                        'image_path' => $imagePath,
+                    ]);
+                }
+            }
+
+            $order->update([
+                'status' => 'selesai',
+                'payment_status' => 'released',
+            ]);
+        });
+
+        return back()->with('success', 'Pesanan telah diselesaikan dan ulasan berhasil dikirim. Terima kasih!');
     }
 
     private function generateOrderNumber(): string

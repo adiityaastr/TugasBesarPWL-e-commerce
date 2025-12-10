@@ -49,7 +49,7 @@
             </div>
             <div class="box">
                 <h2>Penerima</h2>
-                <div><strong>{{ $order->user->name }}</strong></div>
+                <div><strong>{{ $order->user->full_name ?? $order->user->name }}</strong></div>
                 <div class="muted">{{ $order->user->email }}</div>
                 <div style="margin-top:6px; line-height:1.4;">
                     <div>{{ $order->shipping_address }}</div>

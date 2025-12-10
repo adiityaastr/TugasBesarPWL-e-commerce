@@ -5,7 +5,7 @@
             
             @if($cartItems->isEmpty())
                 <div class="bg-white rounded-2xl p-12 text-center shadow-sm border border-gray-100">
-                    <img src="https://assets.tokopedia.net/assets-tokopedia-lite/v2/zeus/kratos/1c70e7e0.svg" alt="Empty Cart" class="w-48 mx-auto mb-6">
+
                     <h2 class="text-xl font-bold text-gray-800 mb-2">Wah, keranjang belanjamu kosong</h2>
                     <p class="text-gray-600 mb-6">Yuk, isi dengan barang-barang impianmu!</p>
                     <a href="{{ route('home') }}" class="inline-block bg-[#0b5c2c] text-white font-bold py-3 px-8 rounded-lg hover:bg-[#09481f] transition shadow">
