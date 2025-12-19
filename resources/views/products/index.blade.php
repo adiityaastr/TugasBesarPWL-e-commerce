@@ -26,13 +26,12 @@
                 @endif
             </div>
 
-            <form method="GET" action="{{ route('home') }}" id="category-form" class="flex flex-wrap gap-2">
+            <form method="GET" action="{{ route('home') }}" id="category-form" class="flex flex-wrap gap-3">
                 @forelse($categories as $cat)
                     @php $checked = $selectedCategories && $selectedCategories->contains($cat); @endphp
-                    <label class="inline-flex items-center gap-2 px-3 py-2 border rounded-full text-sm font-semibold cursor-pointer transition
-                        {{ $checked ? 'border-[#0b5c2c] bg-green-50 text-[#0b5c2c]' : 'border-gray-200 text-gray-700 hover:border-[#0b5c2c] hover:text-[#0b5c2c]' }}">
+                    <label class="inline-flex items-center gap-2 px-4 py-2.5 border-2 rounded-lg text-sm font-semibold cursor-pointer transition-all duration-200
+                        {{ $checked ? 'border-[#0b5c2c] bg-green-50 text-[#0b5c2c] shadow-sm' : 'border-gray-200 bg-white text-gray-700 hover:border-[#0b5c2c] hover:bg-green-50 hover:text-[#0b5c2c]' }}">
                         <input type="checkbox" name="categories[]" value="{{ $cat }}" class="sr-only" {{ $checked ? 'checked' : '' }} onchange="document.getElementById('category-form').submit();">
-
                         <span class="whitespace-nowrap">{{ $cat }}</span>
                     </label>
                 @empty
@@ -178,6 +177,14 @@ document.addEventListener('DOMContentLoaded', () => {
             form.addEventListener('submit', async (ev) => {
                 ev.preventDefault();
                 const data = new FormData(form);
+                const redirectTo = data.get('redirect_to');
+                
+                // Jika redirect_to adalah 'checkout', langsung redirect
+                if (redirectTo === 'checkout') {
+                    form.submit();
+                    return;
+                }
+                
                 const res = await fetch(form.action, {
                     method: 'POST',
                     headers: {
@@ -189,13 +196,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (res.ok) {
                     const json = await res.json().catch(() => ({}));
                     if (json.cartCount !== undefined) {
-                        const badge = document.querySelector('[data-cart-count]');
-                        if (badge) {
-                            badge.textContent = json.cartCount;
-                            badge.classList.toggle('hidden', json.cartCount <= 0);
-                        }
+                        updateCartBadge(json.cartCount);
                     }
-                    alert(json.message || 'Ditambahkan ke keranjang');
+                    // Buka modal notifikasi setelah berhasil menambahkan
+                    if (typeof openCartNotificationModal === 'function') {
+                        openCartNotificationModal();
+                    } else {
+                        alert(json.message || 'Ditambahkan ke keranjang');
+                    }
                 } else {
                     alert('Gagal menambahkan ke keranjang');
                 }
@@ -205,4 +213,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     attachHandlers();
 });
+
+// Global function to update cart badge
+function updateCartBadge(count) {
+    const badge = document.querySelector('[data-cart-count]');
+    if (badge) {
+        badge.textContent = count;
+        badge.classList.toggle('hidden', count <= 0);
+    }
+}
 </script>

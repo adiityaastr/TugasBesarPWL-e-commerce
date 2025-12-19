@@ -13,6 +13,7 @@
                                 <span class="ml-2 inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold 
                                     @if($order->status === 'cancelled') bg-red-100 text-red-700
                                     @elseif($order->status === 'pending_cancellation') bg-orange-100 text-orange-700
+                                    @elseif($order->status === 'selesai') bg-green-100 text-green-700
                                     @elseif($order->status === 'pengiriman') bg-blue-100 text-blue-700
                                     @elseif($order->status === 'pengemasan') bg-purple-100 text-purple-700
                                     @elseif($order->status === 'proses') bg-yellow-100 text-yellow-700
@@ -27,6 +28,8 @@
                                         Pengiriman
                                     @elseif($order->status === 'sudah_sampai')
                                         Sudah Sampai
+                                    @elseif($order->status === 'selesai')
+                                        Selesai
                                     @elseif($order->status === 'cancelled')
                                         Dibatalkan
                                     @else
@@ -192,7 +195,27 @@
                 </div>
             </div>
 
-            @if($order->status !== 'cancelled' && $order->status !== 'pending_cancellation')
+            @if($order->status === 'selesai')
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-100">
+                <div class="p-6 md:p-8 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+                    <div>
+                        <h3 class="text-lg font-bold text-gray-900">Aksi Pesanan</h3>
+                        <p class="text-sm text-gray-600">Pesanan sudah selesai. Anda dapat mencetak invoice atau mengajukan komplain jika ada masalah.</p>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <a href="{{ route('orders.invoice', $order) }}" target="_blank" class="inline-flex items-center px-4 py-2 bg-gray-800 hover:bg-gray-700 text-white text-sm font-semibold rounded-lg shadow">
+                            Print Invoice
+                        </a>
+                        <button type="button" onclick="toggleComplaintForm(true)" class="inline-flex items-center px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white text-sm font-semibold rounded-lg shadow">
+                            Ajukan Komplain
+                        </button>
+                        <a href="{{ route('home') }}" class="inline-flex items-center px-4 py-2 bg-[#0b5c2c] hover:bg-[#09481f] text-white text-sm font-semibold rounded-lg shadow">
+                            Lanjut Belanja
+                        </a>
+                    </div>
+                </div>
+            </div>
+            @elseif($order->status !== 'cancelled' && $order->status !== 'pending_cancellation')
             <div class="bg-white rounded-2xl shadow-sm border border-gray-100">
                 <div class="p-6 md:p-8 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
                     <div>
@@ -225,7 +248,7 @@
             </div>
             @endif
 
-            @if($order->status !== 'cancelled' && $order->status !== 'pending_cancellation')
+            @if($order->status !== 'cancelled' && $order->status !== 'pending_cancellation' && $order->status !== 'selesai')
             <div id="cancel-form" class="bg-white rounded-2xl shadow-sm border border-gray-100 mt-4 hidden">
                 <div class="p-6 md:p-8 space-y-3">
                     <div class="flex items-center justify-between">
@@ -252,12 +275,52 @@
                 </div>
             </div>
             @endif
+
+            @if($order->status === 'selesai')
+            <div id="complaint-form" class="bg-white rounded-2xl shadow-sm border border-gray-100 mt-4 hidden">
+                <div class="p-6 md:p-8 space-y-3">
+                    <div class="flex items-center justify-between">
+                        <h3 class="text-lg font-bold text-gray-900">Ajukan Komplain</h3>
+                        <div class="flex items-center gap-2">
+                            <button type="button" onclick="toggleComplaintForm(false)" class="text-sm text-gray-500 hover:text-gray-700">Tutup</button>
+                        </div>
+                    </div>
+                    <p class="text-sm text-gray-600">Jika Anda mengalami masalah dengan pesanan yang sudah selesai, silakan ajukan komplain dengan detail masalahnya.</p>
+                    <form id="complaint-form-inner" action="/orders/{{ $order->id }}/complaints" method="POST" enctype="multipart/form-data" class="space-y-3">
+                        @csrf
+                        <label class="block text-sm font-semibold text-gray-800 mb-1">Judul Komplain</label>
+                        <input type="text" name="complaint_title" class="w-full border-gray-300 rounded-lg focus:ring-[#0b5c2c] focus:border-[#0b5c2c] text-gray-900" placeholder="Cth: Produk rusak, produk tidak sesuai, dll." required>
+                        
+                        <label class="block text-sm font-semibold text-gray-800 mb-1">Detail Komplain</label>
+                        <textarea name="complaint_detail" rows="4" class="w-full border-gray-300 rounded-lg focus:ring-[#0b5c2c] focus:border-[#0b5c2c] text-gray-900" placeholder="Jelaskan masalah yang Anda alami secara detail..." required></textarea>
+                        
+                        <label class="block text-sm font-semibold text-gray-800 mb-1">Foto Bukti (Opsional)</label>
+                        <input type="file" name="complaint_image" accept="image/*" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-orange-50 file:text-orange-600 hover:file:bg-orange-100 transition">
+                        
+                        <div class="flex items-center gap-2">
+                            <button type="submit" class="inline-flex items-center px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white text-sm font-semibold rounded-lg shadow">
+                                Kirim Komplain
+                            </button>
+                            <button type="button" onclick="toggleComplaintForm(false)" class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-semibold rounded-lg hover:bg-gray-50">
+                                Batal
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            @endif
         </div>
     </div>
 
     <script>
         function toggleCancelForm(show) {
             const el = document.getElementById('cancel-form');
+            if (!el) return;
+            el.classList.toggle('hidden', !show);
+        }
+
+        function toggleComplaintForm(show) {
+            const el = document.getElementById('complaint-form');
             if (!el) return;
             el.classList.toggle('hidden', !show);
         }

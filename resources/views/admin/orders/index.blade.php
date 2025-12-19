@@ -180,7 +180,6 @@
                                                             <option value="pengemasan" {{ $order->status == 'pengemasan' ? 'selected' : '' }}>Pengemasan</option>
                                                             <option value="pengiriman" {{ $order->status == 'pengiriman' ? 'selected' : '' }}>Pengiriman</option>
                                                             <option value="sudah_sampai" {{ $order->status == 'sudah_sampai' ? 'selected' : '' }}>Sudah sampai</option>
-                                                            <option value="selesai" {{ $order->status == 'selesai' ? 'selected' : '' }}>Selesai (konfirmasi)</option>
                                                             @if($order->status == 'pending_cancellation')
                                                                 <option value="cancelled" {{ $order->status == 'cancelled' ? 'selected' : '' }}>Dibatalkan</option>
                                                             @endif

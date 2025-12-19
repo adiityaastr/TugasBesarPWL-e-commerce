@@ -158,5 +158,43 @@
         if(qtyInput) {
             qtyInput.addEventListener('change', updateSubtotal);
         }
+
+        // Handle add to cart forms
+        document.querySelectorAll('form[action="{{ route('cart.store') }}"]').forEach(form => {
+            form.addEventListener('submit', async (ev) => {
+                ev.preventDefault();
+                const data = new FormData(form);
+                const redirectTo = data.get('redirect_to');
+                
+                // Jika redirect_to adalah 'checkout', langsung redirect
+                if (redirectTo === 'checkout') {
+                    form.submit();
+                    return;
+                }
+                
+                const res = await fetch(form.action, {
+                    method: 'POST',
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                    },
+                    body: data
+                });
+                if (res.ok) {
+                    const json = await res.json().catch(() => ({}));
+                    if (json.cartCount !== undefined && typeof updateCartBadge === 'function') {
+                        updateCartBadge(json.cartCount);
+                    }
+                    // Buka modal notifikasi setelah berhasil menambahkan
+                    if (typeof openCartNotificationModal === 'function') {
+                        openCartNotificationModal();
+                    } else {
+                        alert(json.message || 'Ditambahkan ke keranjang');
+                    }
+                } else {
+                    alert('Gagal menambahkan ke keranjang');
+                }
+            });
+        });
     </script>
 </x-app-layout>

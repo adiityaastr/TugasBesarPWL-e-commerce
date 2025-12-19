@@ -41,4 +41,9 @@ class Order extends Model
     {
         return $this->hasMany(Review::class);
     }
+
+    public function complaints()
+    {
+        return $this->hasMany(Complaint::class);
+    }
 }

@@ -38,7 +38,8 @@ class OrderController extends Controller
         if ($cartItems->isEmpty()) {
             return redirect()->route('cart.index')->with('error', 'Your cart is empty.');
         }
-        return view('checkout.index', compact('cartItems'));
+        $addresses = \App\Models\Address::where('user_id', Auth::id())->orderBy('is_default', 'desc')->orderBy('created_at', 'desc')->get();
+        return view('checkout.index', compact('cartItems', 'addresses'));
     }
     
     /**
@@ -50,7 +51,20 @@ class OrderController extends Controller
             return redirect()->route('admin.dashboard')->with('error', 'Admin tidak dapat melakukan pembelian.');
         }
         $request->validate([
-            'shipping_address' => 'required|string',
+            'address_id' => [
+                'nullable',
+                'exists:addresses,id',
+                function ($attribute, $value, $fail) {
+                    if ($value) {
+                        $address = \App\Models\Address::find($value);
+                        if ($address && $address->user_id !== Auth::id()) {
+                            $fail('Alamat yang dipilih tidak valid.');
+                        }
+                    }
+                },
+            ],
+            'recipient_name' => 'required_without:address_id|string|max:255',
+            'shipping_address' => 'required_without:address_id|string',
             'provinsi' => 'nullable|string|max:255',
             'kota' => 'nullable|string|max:255',
             'kecamatan' => 'nullable|string|max:255',
@@ -58,6 +72,7 @@ class OrderController extends Controller
             'kode_pos' => 'nullable|string|max:10',
             'shipping_method' => 'required|in:reguler,kargo,same_day',
             'payment_method' => 'required|in:bank_transfer,credit_card,cod', // Simulated
+            'save_address' => 'nullable|boolean',
         ]);
 
         // Hitung shipping cost berdasarkan metode pengiriman
@@ -76,6 +91,54 @@ class OrderController extends Controller
             
             if ($cartItems->isEmpty()) {
                 throw new \Exception("Cart is empty.");
+            }
+
+            // Handle address: use selected address or save new one
+            $shippingAddress = '';
+            $recipientName = '';
+            $provinsi = null;
+            $kota = null;
+            $kecamatan = null;
+            $kelurahan = null;
+            $kodePos = null;
+
+            if ($request->address_id) {
+                // Use existing address
+                $address = \App\Models\Address::where('id', $request->address_id)
+                    ->where('user_id', Auth::id())
+                    ->firstOrFail();
+                
+                $shippingAddress = $address->shipping_address;
+                $recipientName = $address->recipient_name;
+                $provinsi = $address->provinsi;
+                $kota = $address->kota;
+                $kecamatan = $address->kecamatan;
+                $kelurahan = $address->kelurahan;
+                $kodePos = $address->kode_pos;
+            } else {
+                // Use new address
+                $shippingAddress = $request->shipping_address;
+                $recipientName = $request->recipient_name;
+                $provinsi = $request->provinsi;
+                $kota = $request->kota;
+                $kecamatan = $request->kecamatan;
+                $kelurahan = $request->kelurahan;
+                $kodePos = $request->kode_pos;
+
+                // Save address if user wants to save it
+                if ($request->save_address) {
+                    \App\Models\Address::create([
+                        'user_id' => Auth::id(),
+                        'recipient_name' => $recipientName,
+                        'shipping_address' => $shippingAddress,
+                        'provinsi' => $provinsi,
+                        'kota' => $kota,
+                        'kecamatan' => $kecamatan,
+                        'kelurahan' => $kelurahan,
+                        'kode_pos' => $kodePos,
+                        'is_default' => false,
+                    ]);
+                }
             }
 
             $totalPrice = 0;
@@ -113,12 +176,12 @@ class OrderController extends Controller
                 'total_price' => $finalTotalPrice,
                 'status' => 'proses',
                 'payment_status' => 'pending',
-                'shipping_address' => $request->shipping_address,
-                'provinsi' => $request->provinsi ?? null,
-                'kota' => $request->kota ?? null,
-                'kecamatan' => $request->kecamatan ?? null,
-                'kelurahan' => $request->kelurahan ?? null,
-                'kode_pos' => $request->kode_pos ?? null,
+                'shipping_address' => $shippingAddress,
+                'provinsi' => $provinsi,
+                'kota' => $kota,
+                'kecamatan' => $kecamatan,
+                'kelurahan' => $kelurahan,
+                'kode_pos' => $kodePos,
                 'shipping_method' => $request->shipping_method,
                 'shipping_cost' => $shippingCost,
                 'payment_method' => $request->payment_method,

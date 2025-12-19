@@ -91,8 +91,13 @@ class DashboardController extends Controller
     public function updateOrderStatus(Request $request, Order $order)
     {
         $request->validate([
-            'status' => 'required|in:proses,pengemasan,pengiriman,sudah_sampai,selesai,cancelled',
+            'status' => 'required|in:proses,pengemasan,pengiriman,sudah_sampai,cancelled',
         ]);
+
+        // Admin tidak dapat mengubah status menjadi 'selesai' - hanya pelanggan yang bisa
+        if ($request->status === 'selesai') {
+            return back()->with('error', 'Penjual tidak dapat menyelesaikan pesanan. Hanya pelanggan yang dapat menyelesaikan pesanan setelah menerima barang.');
+        }
 
         // Jika sudah selesai/released, tidak bisa diubah lagi
         if ($order->status === 'selesai' || $order->payment_status === 'released') {
@@ -115,11 +120,6 @@ class DashboardController extends Controller
         }
 
         $order->update(['status' => $request->status]);
-
-        // Jika status selesai, release pembayaran
-        if ($request->status === 'selesai') {
-            $order->update(['payment_status' => 'released']);
-        }
 
         return back()->with('success', 'Status pesanan berhasil diperbarui.');
     }

@@ -19,16 +19,16 @@
                          <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
                              <!-- Header -->
                              <div class="p-4 border-b border-gray-100 bg-gray-50 flex items-center gap-2">
-                                <input type="checkbox" checked class="rounded text-[#0b5c2c] focus:ring-[#0b5c2c]">
-                                <span class="font-semibold text-gray-800">Pilih Semua</span>
+                                <input type="checkbox" id="select-all" checked class="rounded text-[#0b5c2c] focus:ring-[#0b5c2c]">
+                                <label for="select-all" class="font-semibold text-gray-800 cursor-pointer">Pilih Semua</label>
                              </div>
 
                              @php $total = 0; @endphp
                              @foreach($cartItems as $item)
                                 @php $itemTotal = $item->product->price * $item->quantity; $total += $itemTotal; @endphp
-                                <div class="p-6 border-b border-gray-100 last:border-none">
+                                <div class="p-6 border-b border-gray-100 last:border-none cart-item" data-item-id="{{ $item->id }}" data-price="{{ $item->product->price }}" data-quantity="{{ $item->quantity }}">
                                     <div class="flex items-start gap-4">
-                                        <input type="checkbox" checked class="mt-1 rounded text-[#0b5c2c] focus:ring-[#0b5c2c]">
+                                        <input type="checkbox" class="item-checkbox mt-1 rounded text-[#0b5c2c] focus:ring-[#0b5c2c]" checked data-item-id="{{ $item->id }}">
                                         
                                         <!-- Image -->
                                         <div class="w-20 h-20 shrink-0">
@@ -51,7 +51,7 @@
 
                                     <!-- Actions -->
                                     <div class="flex justify-end items-center mt-4 gap-4">
-                                        <form action="{{ route('cart.destroy', $item) }}" method="POST">
+                                        <form action="{{ route('cart.destroy', $item) }}" method="POST" class="delete-item-form">
                                             @csrf
                                             @method('DELETE')
                                             <button type="submit" class="text-gray-400 hover:text-red-500 transition">
@@ -59,11 +59,11 @@
                                             </button>
                                         </form>
 
-                                        <form action="{{ route('cart.update', $item) }}" method="POST" class="flex items-center border border-gray-200 rounded-lg bg-gray-50">
+                                        <form action="{{ route('cart.update', $item) }}" method="POST" class="update-quantity-form flex items-center border border-gray-200 rounded-lg bg-gray-50">
                                             @csrf
                                             @method('PUT')
                                             <button type="submit" name="quantity" value="{{ $item->quantity - 1 }}" class="px-3 py-1 text-gray-600 hover:bg-gray-100 rounded-l disabled:opacity-50" {{ $item->quantity <= 1 ? 'disabled' : '' }}>-</button>
-                                            <input type="text" readonly value="{{ $item->quantity }}" class="w-10 text-center border-none bg-gray-50 p-1 text-sm focus:ring-0 text-gray-900">
+                                            <input type="text" readonly value="{{ $item->quantity }}" class="item-quantity w-10 text-center border-none bg-gray-50 p-1 text-sm focus:ring-0 text-gray-900" data-item-id="{{ $item->id }}">
                                             <button type="submit" name="quantity" value="{{ $item->quantity + 1 }}" class="px-3 py-1 text-[#0b5c2c] hover:bg-gray-100 rounded-r">+</button>
                                         </form>
                                     </div>
@@ -78,19 +78,19 @@
                             <h3 class="font-bold text-lg text-gray-900 mb-6">Ringkasan Belanja</h3>
                             
                             <div class="flex justify-between items-center mb-4 text-gray-700">
-                                <span>Total Harga ({{ $cartItems->sum('quantity') }} barang)</span>
-                                <span class="font-semibold text-gray-900">Rp{{ number_format($total, 0, ',', '.') }}</span>
+                                <span>Total Harga (<span id="selected-items-count">{{ $cartItems->sum('quantity') }}</span> barang)</span>
+                                <span class="font-semibold text-gray-900" id="selected-total-price">Rp{{ number_format($total, 0, ',', '.') }}</span>
                             </div>
                             
                             <div class="border-t border-gray-100 my-4"></div>
                             
                             <div class="flex justify-between items-center mb-8">
                                 <span class="font-bold text-lg text-gray-900">Total Tagihan</span>
-                                <span class="font-bold text-lg text-[#0b5c2c]">Rp{{ number_format($total, 0, ',', '.') }}</span>
+                                <span class="font-bold text-lg text-[#0b5c2c]" id="total-bill">Rp{{ number_format($total, 0, ',', '.') }}</span>
                             </div>
 
                             <a href="{{ route('checkout.index') }}" class="block w-full bg-[#0b5c2c] hover:bg-[#09481f] text-white font-bold py-3 rounded-lg text-center shadow-lg transition transform hover:-translate-y-1">
-                                Beli ({{ $cartItems->sum('quantity') }})
+                                Beli (<span id="checkout-items-count">{{ $cartItems->sum('quantity') }}</span>)
                             </a>
                         </div>
                     </div>
@@ -98,4 +98,181 @@
             @endif
         </div>
     </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const selectAllCheckbox = document.getElementById('select-all');
+            const itemCheckboxes = document.querySelectorAll('.item-checkbox');
+            const selectedTotalPriceEl = document.getElementById('selected-total-price');
+            const totalBillEl = document.getElementById('total-bill');
+            const selectedItemsCountEl = document.getElementById('selected-items-count');
+            const checkoutItemsCountEl = document.getElementById('checkout-items-count');
+
+            function formatRupiah(num) {
+                return 'Rp' + num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+            }
+
+            function calculateTotal() {
+                let total = 0;
+                let totalItems = 0;
+
+                itemCheckboxes.forEach(checkbox => {
+                    if (checkbox.checked) {
+                        const cartItem = checkbox.closest('.cart-item');
+                        if (cartItem) {
+                            const price = parseFloat(cartItem.dataset.price);
+                            const quantity = parseInt(cartItem.dataset.quantity);
+                            total += price * quantity;
+                            totalItems += quantity;
+                        }
+                    }
+                });
+
+                selectedTotalPriceEl.textContent = formatRupiah(total);
+                totalBillEl.textContent = formatRupiah(total);
+                selectedItemsCountEl.textContent = totalItems;
+                checkoutItemsCountEl.textContent = totalItems;
+            }
+
+            // Handle select all checkbox
+            if (selectAllCheckbox) {
+                selectAllCheckbox.addEventListener('change', function() {
+                    itemCheckboxes.forEach(checkbox => {
+                        checkbox.checked = this.checked;
+                    });
+                    calculateTotal();
+                });
+            }
+
+            // Handle individual item checkboxes
+            itemCheckboxes.forEach(checkbox => {
+                checkbox.addEventListener('change', function() {
+                    // Update select all checkbox state
+                    const allChecked = Array.from(itemCheckboxes).every(cb => cb.checked);
+                    if (selectAllCheckbox) {
+                        selectAllCheckbox.checked = allChecked;
+                    }
+                    calculateTotal();
+                });
+            });
+
+            // Handle quantity update
+            document.querySelectorAll('.update-quantity-form').forEach(form => {
+                form.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    const clickedButton = e.submitter;
+                    if (!clickedButton || clickedButton.type !== 'submit') return;
+                    
+                    const quantity = parseInt(clickedButton.value);
+                    const itemId = this.querySelector('.item-quantity').dataset.itemId;
+                    const cartItem = document.querySelector(`.cart-item[data-item-id="${itemId}"]`);
+                    
+                    fetch(this.action, {
+                        method: 'PUT',
+                        headers: {
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'Accept': 'application/json',
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ quantity: quantity })
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            // Update quantity in cart item
+                            if (cartItem) {
+                                cartItem.dataset.quantity = quantity;
+                                const quantityInput = cartItem.querySelector('.item-quantity');
+                                if (quantityInput) {
+                                    quantityInput.value = quantity;
+                                }
+                                
+                                // Update disabled state of buttons
+                                const minusBtn = this.querySelector('button[name="quantity"][value="' + (quantity - 1) + '"]');
+                                const plusBtn = this.querySelector('button[name="quantity"][value="' + (quantity + 1) + '"]');
+                                
+                                // Update all minus buttons
+                                const allMinusBtns = this.querySelectorAll('button[name="quantity"]');
+                                allMinusBtns.forEach(btn => {
+                                    const btnValue = parseInt(btn.value);
+                                    if (btnValue < quantity) {
+                                        btn.disabled = quantity <= 1;
+                                    }
+                                });
+                                
+                                // Recalculate total
+                                calculateTotal();
+                                
+                                // Update cart badge if function exists
+                                if (typeof updateCartBadge === 'function' && data.cartCount !== undefined) {
+                                    updateCartBadge(data.cartCount);
+                                }
+                            }
+                        } else {
+                            alert(data.message || 'Gagal memperbarui jumlah');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        alert('Gagal memperbarui jumlah');
+                    });
+                });
+            });
+
+            // Handle item deletion
+            document.querySelectorAll('.delete-item-form').forEach(form => {
+                form.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    if (!confirm('Hapus item dari keranjang?')) return;
+                    
+                    const itemId = this.closest('.cart-item').dataset.itemId;
+                    const cartItem = this.closest('.cart-item');
+                    
+                    fetch(this.action, {
+                        method: 'DELETE',
+                        headers: {
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'Accept': 'application/json',
+                        }
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            cartItem.remove();
+                            
+                            // Update select all checkbox
+                            const remainingCheckboxes = document.querySelectorAll('.item-checkbox');
+                            if (selectAllCheckbox && remainingCheckboxes.length > 0) {
+                                selectAllCheckbox.checked = Array.from(remainingCheckboxes).every(cb => cb.checked);
+                            }
+                            
+                            // Recalculate total
+                            calculateTotal();
+                            
+                            // Update cart badge if function exists
+                            if (typeof updateCartBadge === 'function' && data.cartCount !== undefined) {
+                                updateCartBadge(data.cartCount);
+                            }
+                            
+                            // If cart is empty, reload page
+                            if (remainingCheckboxes.length === 0) {
+                                location.reload();
+                            }
+                        } else {
+                            alert(data.message || 'Gagal menghapus item');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        alert('Gagal menghapus item');
+                    });
+                });
+            });
+
+            // Initial calculation
+            calculateTotal();
+        });
+    </script>
 </x-app-layout>

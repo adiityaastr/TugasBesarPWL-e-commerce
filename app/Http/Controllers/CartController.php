@@ -6,15 +6,44 @@ use App\Models\Cart;
 use App\Models\Product;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 
 class CartController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
         if (Auth::user()?->role === 'admin') {
             return redirect()->route('admin.dashboard')->with('error', 'Admin tidak dapat melakukan pembelian.');
         }
         $cartItems = Cart::with('product')->where('user_id', Auth::id())->get();
+        
+        // If AJAX request, return JSON
+        if ($request->wantsJson() || $request->ajax()) {
+            $total = 0;
+            $items = [];
+            foreach ($cartItems as $item) {
+                $itemTotal = $item->product->price * $item->quantity;
+                $total += $itemTotal;
+                $items[] = [
+                    'id' => $item->id,
+                    'product_id' => $item->product_id,
+                    'product_name' => $item->product->name,
+                    'product_image' => $item->product->image ? Storage::url($item->product->image) : null,
+                    'product_price' => $item->product->price,
+                    'quantity' => $item->quantity,
+                    'subtotal' => $itemTotal,
+                ];
+            }
+            
+            return response()->json([
+                'success' => true,
+                'items' => $items,
+                'total' => $total,
+                'totalItems' => $cartItems->sum('quantity'),
+                'cartCount' => $cartItems->sum('quantity'),
+            ]);
+        }
+        
         return view('cart.index', compact('cartItems'));
     }
 
@@ -81,21 +110,45 @@ class CartController extends Controller
         $request->validate(['quantity' => 'required|integer|min:1']);
         
         if ($cart->product->stock < $request->quantity) {
-             return back()->with('error', 'Insufficient stock.');
+            if ($request->wantsJson() || $request->ajax()) {
+                return response()->json(['success' => false, 'message' => 'Insufficient stock.'], 400);
+            }
+            return back()->with('error', 'Insufficient stock.');
         }
 
         $cart->update(['quantity' => $request->quantity]);
+        
+        $cartCount = Cart::where('user_id', Auth::id())->sum('quantity');
+
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Cart updated.',
+                'cartCount' => $cartCount,
+            ]);
+        }
 
         return back()->with('success', 'Cart updated.');
     }
 
-    public function destroy(Cart $cart)
+    public function destroy(Request $request, Cart $cart)
     {
         if (Auth::user()?->role === 'admin') {
             return redirect()->route('admin.dashboard')->with('error', 'Admin tidak dapat melakukan pembelian.');
         }
         if ($cart->user_id !== Auth::id()) abort(403);
         $cart->delete();
+        
+        $cartCount = Cart::where('user_id', Auth::id())->sum('quantity');
+        
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Item removed from cart.',
+                'cartCount' => $cartCount,
+            ]);
+        }
+        
         return back()->with('success', 'Item removed from cart.');
     }
 }

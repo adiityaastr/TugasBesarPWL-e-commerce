@@ -56,6 +56,45 @@
                 </div>
             </main>
 
+            <!-- Cart Notification Modal -->
+            @auth
+                @if(Auth::user()->role !== 'admin')
+                <div id="cart-notification-modal" class="fixed inset-0 z-50 hidden overflow-y-auto" aria-labelledby="cart-notification-title" role="dialog" aria-modal="true">
+                    <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
+                        <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true" onclick="closeCartNotificationModal()"></div>
+                        <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+                        <div class="inline-block align-bottom bg-white rounded-2xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-md sm:w-full">
+                            <div class="bg-white px-6 pt-6 pb-4">
+                                <div class="flex items-center justify-center mb-4">
+                                    <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-green-100">
+                                        <svg class="h-6 w-6 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                                        </svg>
+                                    </div>
+                                </div>
+                                <div class="text-center">
+                                    <h3 class="text-lg font-bold text-gray-900 mb-2" id="cart-notification-title">
+                                        Produk Berhasil Ditambahkan!
+                                    </h3>
+                                    <p class="text-sm text-gray-600 mb-6">
+                                        Produk telah ditambahkan ke keranjang belanja Anda.
+                                    </p>
+                                </div>
+                            </div>
+                            <div class="bg-gray-50 px-6 py-4 flex flex-col sm:flex-row gap-3 border-t border-gray-200">
+                                <button onclick="closeCartNotificationModal()" class="flex-1 inline-flex justify-center rounded-lg border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 transition">
+                                    Lanjut Belanja
+                                </button>
+                                <a href="{{ route('checkout.index') }}" onclick="closeCartNotificationModal()" class="flex-1 inline-flex justify-center rounded-lg border border-transparent shadow-sm px-4 py-2 bg-[#0b5c2c] text-base font-medium text-white hover:bg-[#09481f] transition">
+                                    Checkout
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                @endif
+            @endauth
+
             <!-- Footer -->
             <footer class="bg-white border-t border-gray-200 mt-12">
                 <div class="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
@@ -109,5 +148,40 @@
                 </div>
             </footer>
         </div>
+
+        @auth
+            @if(Auth::user()->role !== 'admin')
+            <script>
+                // Global function to update cart badge
+                window.updateCartBadge = function(count) {
+                    const badge = document.querySelector('[data-cart-count]');
+                    if (badge) {
+                        badge.textContent = count;
+                        badge.classList.toggle('hidden', count <= 0);
+                    }
+                }
+
+                // Global function to open cart notification modal
+                window.openCartNotificationModal = function() {
+                    const modal = document.getElementById('cart-notification-modal');
+                    if (!modal) return;
+                    modal.classList.remove('hidden');
+                }
+
+                function closeCartNotificationModal() {
+                    const modal = document.getElementById('cart-notification-modal');
+                    if (!modal) return;
+                    modal.classList.add('hidden');
+                }
+
+                // Close modal on ESC key
+                document.addEventListener('keydown', function(event) {
+                    if (event.key === 'Escape') {
+                        closeCartNotificationModal();
+                    }
+                });
+            </script>
+            @endif
+        @endauth
     </body>
 </html>

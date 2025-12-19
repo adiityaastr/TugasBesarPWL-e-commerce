@@ -23,6 +23,10 @@ class OrderCancelController extends Controller
             return back()->with('error', 'Pembatalan sudah diajukan, menunggu konfirmasi penjual.');
         }
 
+        if ($order->status === 'selesai') {
+            return back()->with('error', 'Pesanan sudah selesai dan tidak dapat dibatalkan. Jika ada masalah, silakan ajukan komplain.');
+        }
+
         $request->validate([
             'cancellation_reason' => 'required|string|max:500',
         ]);

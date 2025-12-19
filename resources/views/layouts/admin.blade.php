@@ -36,6 +36,10 @@
                                 {{ request()->routeIs('admin.orders.*') ? 'text-[#0b5c2c] bg-green-50 border border-green-200' : 'text-gray-700 hover:text-[#0b5c2c] hover:bg-green-50' }}">
                                 Pesanan
                             </a>
+                            <a href="{{ route('admin.complaints.index') }}" class="px-3 py-2 text-sm font-semibold rounded transition
+                                {{ request()->routeIs('admin.complaints.*') ? 'text-[#0b5c2c] bg-green-50 border border-green-200' : 'text-gray-700 hover:text-[#0b5c2c] hover:bg-green-50' }}">
+                                Komplain
+                            </a>
                             <a href="{{ route('admin.reports.index') }}" class="px-3 py-2 text-sm font-semibold rounded transition
                                 {{ request()->routeIs('admin.reports.*') ? 'text-[#0b5c2c] bg-green-50 border border-green-200' : 'text-gray-700 hover:text-[#0b5c2c] hover:bg-green-50' }}">
                                 Laporan
