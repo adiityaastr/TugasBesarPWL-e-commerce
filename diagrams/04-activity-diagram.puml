@@ -1,0 +1,101 @@
+@startuml Activity Diagram - Shopping & Checkout Process
+
+start
+
+:Customer browses products;
+:Customer views product details;
+:Customer adds product to cart;
+
+if (Product in cart?) then (yes)
+  :Increment quantity;
+else (no)
+  :Create new cart item;
+endif
+
+:Customer continues shopping?;
+
+if (Continue shopping?) then (yes)
+  :Browse more products;
+  repeat
+    :Add to cart;
+  repeat while (More products?) is (yes)
+else (no)
+endif
+
+:Customer views cart;
+:Customer reviews items;
+
+if (Update quantity?) then (yes)
+  :Update cart item quantity;
+  if (Stock sufficient?) then (yes)
+    :Update successful;
+  else (no)
+    :Show error: insufficient stock;
+    stop
+  endif
+endif
+
+if (Remove item?) then (yes)
+  :Remove item from cart;
+endif
+
+:Customer clicks checkout;
+
+if (Cart empty?) then (yes)
+  :Show error: cart is empty;
+  stop
+else (no)
+endif
+
+:Display checkout page;
+:Load saved addresses;
+
+if (Use saved address?) then (yes)
+  :Select address;
+else (no)
+  :Enter new address;
+  if (Save address?) then (yes)
+    :Save address to profile;
+  endif
+endif
+
+:Select shipping method;
+:Select payment method;
+:Review order summary;
+:Customer confirms order;
+
+:Begin database transaction;
+
+repeat
+  :Check product stock;
+  if (Stock sufficient?) then (no)
+    :Rollback transaction;
+    :Show error: out of stock;
+    stop
+  else (yes)
+    :Lock product for update;
+    :Decrement product stock;
+  endif
+repeat while (More items?) is (yes)
+
+:Calculate total price;
+:Calculate shipping cost;
+:Generate order number;
+:Create order record;
+:Create order items;
+
+if (Use existing address?) then (yes)
+  :Copy address to order;
+else (no)
+  :Save new address to order;
+endif
+
+:Clear shopping cart;
+:Commit transaction;
+
+:Redirect to order details;
+:Show success message;
+
+stop
+
+@enduml

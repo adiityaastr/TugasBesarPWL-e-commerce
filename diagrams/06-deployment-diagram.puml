@@ -1,0 +1,111 @@
+@startuml Deployment Diagram - Herbamart E-Commerce
+
+!define SERVER_COLOR #E1F5FF
+!define CLIENT_COLOR #FFF4E1
+!define DATABASE_COLOR #E8F5E9
+!define NETWORK_COLOR #F3E5F5
+
+node "Client Devices" CLIENT_COLOR {
+    artifact "Web Browser" as Browser1
+    artifact "Web Browser" as Browser2
+    artifact "Mobile Browser" as MobileBrowser
+}
+
+cloud "Internet" NETWORK_COLOR {
+}
+
+node "Web Server" SERVER_COLOR {
+    artifact "Nginx/Apache" as WebServer
+    artifact "PHP-FPM" as PHPFPM
+    artifact "Laravel Application" as LaravelApp {
+        component [Controllers]
+        component [Models]
+        component [Views]
+        component [Middleware]
+        component [Routes]
+    }
+    artifact "Vite Dev Server" as Vite
+    artifact "Session Storage" as Session
+}
+
+node "Application Server" SERVER_COLOR {
+    artifact "Laravel Queue Worker" as QueueWorker
+    artifact "Laravel Scheduler" as Scheduler
+    artifact "Laravel Pail (Logs)" as Logs
+}
+
+node "Database Server" DATABASE_COLOR {
+    database "MySQL/MariaDB" as MySQL {
+        component [users]
+        component [products]
+        component [orders]
+        component [order_items]
+        component [carts]
+        component [addresses]
+        component [reviews]
+        component [complaints]
+    }
+}
+
+node "File Storage Server" SERVER_COLOR {
+    artifact "Local Storage" as FileStorage {
+        component [public/storage]
+        component [product-images]
+        component [review-images]
+        component [complaint-images]
+        component [profile-photos]
+    }
+}
+
+node "External Services" {
+    artifact "Email Service\n(SMTP)" as EmailService
+    artifact "Payment Gateway\n(Simulated)" as PaymentGateway
+}
+
+' Connections
+Browser1 --> WebServer : HTTP/HTTPS
+Browser2 --> WebServer : HTTP/HTTPS
+MobileBrowser --> WebServer : HTTP/HTTPS
+
+WebServer --> PHPFPM : FastCGI
+PHPFPM --> LaravelApp : Execute
+LaravelApp --> MySQL : PDO Connection
+LaravelApp --> FileStorage : File Operations
+LaravelApp --> Session : Session Data
+
+LaravelApp --> Vite : Asset Compilation\n(Development)
+Vite --> Browser1 : Hot Module Replacement
+
+QueueWorker --> MySQL : Process Jobs
+Scheduler --> MySQL : Scheduled Tasks
+Logs --> LaravelApp : Log Monitoring
+
+LaravelApp --> EmailService : Send Emails
+LaravelApp --> PaymentGateway : Process Payments
+
+note right of WebServer
+  **Web Server Configuration:**
+  - Port 80/443
+  - SSL/TLS enabled
+  - Static file serving
+  - Reverse proxy to PHP-FPM
+end note
+
+note right of MySQL
+  **Database Configuration:**
+  - Port 3306
+  - Connection pooling
+  - Backup scheduled
+  - Replication (optional)
+end note
+
+note right of FileStorage
+  **Storage Configuration:**
+  - Local filesystem
+  - Can be migrated to:
+    - AWS S3
+    - Google Cloud Storage
+    - Azure Blob Storage
+end note
+
+@enduml

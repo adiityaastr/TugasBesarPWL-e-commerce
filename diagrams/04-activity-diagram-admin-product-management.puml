@@ -1,0 +1,76 @@
+@startuml Activity Diagram - Admin Product Management
+
+start
+
+:Admin logs in;
+:Admin navigates to products;
+
+switch (Action type?)
+case (Create)
+  :Click create product;
+  :Fill product form;
+  note right
+    - Name
+    - Description
+    - Price
+    - Stock
+    - Category
+    - Image
+  end note
+  
+  :Validate input;
+  
+  if (Validation passed?) then (no)
+    :Show validation errors;
+    :Return to form;
+  else (yes)
+    :Upload product image;
+    :Generate product slug;
+    :Save product to database;
+    :Show success message;
+    :Redirect to product list;
+  endif
+
+case (Update)
+  :Select product to edit;
+  :Load product data;
+  :Fill edit form with existing data;
+  :Admin modifies product;
+  
+  if (Image changed?) then (yes)
+    :Delete old image;
+    :Upload new image;
+  else (no)
+  endif
+  
+  :Validate input;
+  
+  if (Validation passed?) then (no)
+    :Show validation errors;
+    :Return to form;
+  else (yes)
+    :Update product in database;
+    :Show success message;
+    :Redirect to product list;
+  endif
+
+case (Delete)
+  :Select product to delete;
+  :Confirm deletion;
+  
+  if (Confirmed?) then (yes)
+    :Delete product image from storage;
+    :Delete product from database;
+    :Show success message;
+  else (no)
+    :Cancel deletion;
+  endif
+
+case (View)
+  :Display product list;
+  :Show pagination;
+endswitch
+
+stop
+
+@enduml

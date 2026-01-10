@@ -1,0 +1,175 @@
+@startuml Use Case Diagram - Herbamart E-Commerce
+
+left to right direction
+
+actor Customer
+actor Admin
+actor "Guest User" as Guest
+
+rectangle "Herbamart E-Commerce System" {
+    
+    package "Authentication & Profile" {
+        usecase "Register Account" as UC1
+        usecase "Login" as UC2
+        usecase "Logout" as UC3
+        usecase "Reset Password" as UC4
+        usecase "View Profile" as UC5
+        usecase "Update Profile" as UC6
+        usecase "Delete Account" as UC7
+    }
+
+    package "Product Management" {
+        usecase "Browse Products" as UC8
+        usecase "View Product Details" as UC9
+        usecase "Filter Products by Category" as UC10
+        usecase "Sort Products" as UC11
+        usecase "Search Products" as UC12
+        usecase "Create Product" as UC13
+        usecase "Update Product" as UC14
+        usecase "Delete Product" as UC15
+        usecase "View Product List (Admin)" as UC16
+    }
+
+    package "Shopping Cart" {
+        usecase "Add to Cart" as UC17
+        usecase "View Cart" as UC18
+        usecase "Update Cart Item Quantity" as UC19
+        usecase "Remove from Cart" as UC20
+    }
+
+    package "Checkout & Order" {
+        usecase "View Checkout Page" as UC21
+        usecase "Select Shipping Address" as UC22
+        usecase "Add New Address" as UC23
+        usecase "Select Shipping Method" as UC24
+        usecase "Select Payment Method" as UC25
+        usecase "Place Order" as UC26
+        usecase "View Order History" as UC27
+        usecase "View Order Details" as UC28
+        usecase "Print Invoice" as UC29
+        usecase "Cancel Order" as UC30
+        usecase "Complete Order" as UC31
+    }
+
+    package "Address Management" {
+        usecase "Save Address" as UC32
+        usecase "Edit Address" as UC33
+        usecase "Delete Address" as UC34
+        usecase "Set Default Address" as UC35
+    }
+
+    package "Review & Rating" {
+        usecase "Submit Product Review" as UC36
+        usecase "Upload Review Image" as UC37
+    }
+
+    package "Complaint Management" {
+        usecase "Submit Complaint" as UC38
+        usecase "View Complaint Status" as UC39
+        usecase "View All Complaints" as UC40
+        usecase "Update Complaint Status" as UC41
+        usecase "Respond to Complaint" as UC42
+    }
+
+    package "Admin Dashboard" {
+        usecase "View Dashboard Statistics" as UC43
+        usecase "View Revenue Charts" as UC44
+        usecase "View Top Products Chart" as UC45
+        usecase "View Order Status Chart" as UC46
+    }
+
+    package "Order Management (Admin)" {
+        usecase "View All Orders" as UC47
+        usecase "Update Order Status" as UC48
+        usecase "Approve Order Cancellation" as UC49
+        usecase "Reject Order Cancellation" as UC50
+        usecase "Print Shipping Label" as UC51
+    }
+
+    package "Reports" {
+        usecase "Generate Sales Report" as UC52
+        usecase "Filter Report by Date" as UC53
+        usecase "Filter Report by Status" as UC54
+    }
+}
+
+' Guest User associations
+Guest --> UC8 : can
+Guest --> UC9 : can
+
+' Customer associations
+Customer --> UC1
+Customer --> UC2
+Customer --> UC3
+Customer --> UC4
+Customer --> UC5
+Customer --> UC6
+Customer --> UC7
+Customer --> UC8
+Customer --> UC9
+Customer --> UC10
+Customer --> UC11
+Customer --> UC12
+Customer --> UC17
+Customer --> UC18
+Customer --> UC19
+Customer --> UC20
+Customer --> UC21
+Customer --> UC22
+Customer --> UC23
+Customer --> UC24
+Customer --> UC25
+Customer --> UC26
+Customer --> UC27
+Customer --> UC28
+Customer --> UC29
+Customer --> UC30
+Customer --> UC31
+Customer --> UC32
+Customer --> UC33
+Customer --> UC34
+Customer --> UC35
+Customer --> UC36
+Customer --> UC37
+Customer --> UC38
+Customer --> UC39
+
+' Admin associations
+Admin --> UC2
+Admin --> UC3
+Admin --> UC13
+Admin --> UC14
+Admin --> UC15
+Admin --> UC16
+Admin --> UC40
+Admin --> UC41
+Admin --> UC42
+Admin --> UC43
+Admin --> UC44
+Admin --> UC45
+Admin --> UC46
+Admin --> UC47
+Admin --> UC48
+Admin --> UC49
+Admin --> UC50
+Admin --> UC51
+Admin --> UC52
+Admin --> UC53
+Admin --> UC54
+
+' Extend relationships
+UC26 ..> UC17 : <<extends>>\n(requires items in cart)
+UC26 ..> UC22 : <<extends>>
+UC26 ..> UC24 : <<extends>>
+UC26 ..> UC25 : <<extends>>
+UC31 ..> UC36 : <<extends>>\n(optional)
+UC30 ..> UC48 : <<extends>>\n(requires admin approval)
+UC38 ..> UC31 : <<extends>>\n(requires completed order)
+
+' Include relationships
+UC17 ..> UC9 : <<include>>\n(needs product info)
+UC19 ..> UC18 : <<include>>
+UC20 ..> UC18 : <<include>>
+UC26 ..> UC18 : <<include>>
+
+@enduml

@@ -1,0 +1,107 @@
+@startuml Sequence Diagram - Place Order Process
+
+actor Customer
+participant "CartController" as Cart
+participant "OrderController" as Order
+participant "Product Model" as Product
+participant "Order Model" as OrderModel
+participant "OrderItem Model" as OrderItem
+participant "Cart Model" as CartModel
+participant "Address Model" as Address
+participant Database
+
+Customer -> Cart: GET /checkout
+activate Cart
+Cart -> CartModel: get cart items with products
+activate CartModel
+CartModel -> Database: query cart items
+Database --> CartModel: cart items
+CartModel --> Cart: cart items
+deactivate CartModel
+Cart -> Address: get user addresses
+activate Address
+Address -> Database: query addresses
+Database --> Address: addresses
+Address --> Cart: addresses
+deactivate Address
+Cart --> Customer: render checkout page
+deactivate Cart
+
+Customer -> Order: POST /orders (with address, shipping, payment)
+activate Order
+Order -> Order: validate request
+Order -> CartModel: get cart items
+activate CartModel
+CartModel -> Database: query cart items
+Database --> CartModel: cart items
+CartModel --> Order: cart items
+deactivate CartModel
+
+Order -> Database: begin transaction
+
+loop For each cart item
+    Order -> Product: lockForUpdate() find product
+    activate Product
+    Product -> Database: lock and get product
+    Database --> Product: product data
+    Product --> Order: product
+    deactivate Product
+    
+    Order -> Order: check stock availability
+    alt Stock insufficient
+        Order -> Database: rollback transaction
+        Order --> Customer: error: out of stock
+    else Stock sufficient
+        Order -> Product: decrement stock
+        activate Product
+        Product -> Database: update stock
+        Database --> Product: updated
+        Product --> Order: success
+        deactivate Product
+    end
+end
+
+Order -> Address: get or create address
+activate Address
+alt Address ID provided
+    Address -> Database: find address
+    Database --> Address: address data
+else New address
+    Address -> Database: create address
+    Database --> Address: address created
+end
+Address --> Order: address data
+deactivate Address
+
+Order -> Order: calculate total price
+Order -> Order: calculate shipping cost
+Order -> Order: generate order number
+
+Order -> OrderModel: create order
+activate OrderModel
+OrderModel -> Database: insert order
+Database --> OrderModel: order created
+OrderModel --> Order: order
+deactivate OrderModel
+
+loop For each cart item
+    Order -> OrderItem: create order item
+    activate OrderItem
+    OrderItem -> Database: insert order item
+    Database --> OrderItem: order item created
+    OrderItem --> Order: success
+    deactivate OrderItem
+end
+
+Order -> CartModel: delete all cart items
+activate CartModel
+CartModel -> Database: delete cart items
+Database --> CartModel: deleted
+CartModel --> Order: success
+deactivate CartModel
+
+Order -> Database: commit transaction
+Order --> Customer: redirect to order details
+deactivate Order
+
+@enduml

@@ -1,0 +1,102 @@
+@startuml Component Diagram - Herbamart E-Commerce
+
+!define WEB_COLOR #E3F2FD
+!define API_COLOR #F3E5F5
+!define DATA_COLOR #E8F5E9
+!define AUTH_COLOR #FFF3E0
+
+package "Presentation Layer" WEB_COLOR {
+    component [Web Browser] as Browser
+    component [Blade Templates] as Views
+    component [JavaScript/AJAX] as JS
+    component [CSS/Tailwind] as CSS
+}
+
+package "Application Layer" #FFFFFF {
+    package "Laravel Framework" {
+        component [Routing] as Router
+        component [Middleware] as Middleware
+        component [Controllers] as Controllers
+        component [Request Validation] as Validation
+    }
+    
+    package "Authentication System" AUTH_COLOR {
+        component [Login Controller] as LoginCtrl
+        component [Register Controller] as RegisterCtrl
+        component [Password Reset] as PasswordReset
+        component [Session Management] as Session
+    }
+    
+    package "Business Logic" {
+        component [Product Management] as ProductMgmt
+        component [Cart Management] as CartMgmt
+        component [Order Management] as OrderMgmt
+        component [Address Management] as AddressMgmt
+        component [Review System] as ReviewSys
+        component [Complaint System] as ComplaintSys
+        component [Admin Dashboard] as AdminDash
+    }
+}
+
+package "Data Layer" DATA_COLOR {
+    component [Eloquent ORM] as ORM
+    package "Database" {
+        database "MySQL/MariaDB" as MySQL
+    }
+    package "File Storage" {
+        component [Product Images] as ProductImg
+        component [Review Images] as ReviewImg
+        component [Complaint Images] as ComplaintImg
+        component [Profile Photos] as ProfileImg
+    }
+}
+
+package "External Services" {
+    component [Email Service] as Email
+    component [Payment Gateway] as Payment
+}
+
+' Connections
+Browser --> Views : HTTP Request
+Browser --> JS : JavaScript Execution
+Views --> JS : AJAX Calls
+JS --> Controllers : AJAX Requests
+Views --> CSS : Styling
+
+Views --> Controllers : Render Views
+Controllers --> Validation : Validate Input
+Controllers --> Middleware : Check Permissions
+Router --> Middleware : Route Middleware
+Router --> Controllers : Route to Controller
+
+Controllers --> ProductMgmt : Uses
+Controllers --> CartMgmt : Uses
+Controllers --> OrderMgmt : Uses
+Controllers --> AddressMgmt : Uses
+Controllers --> ReviewSys : Uses
+Controllers --> ComplaintSys : Uses
+Controllers --> AdminDash : Uses
+
+LoginCtrl --> Session : Create Session
+RegisterCtrl --> Session : Create Session
+PasswordReset --> Email : Send Reset Email
+
+ProductMgmt --> ORM : Query Products
+CartMgmt --> ORM : Query Cart
+OrderMgmt --> ORM : Query Orders
+AddressMgmt --> ORM : Query Addresses
+ReviewSys --> ORM : Query Reviews
+ComplaintSys --> ORM : Query Complaints
+AdminDash --> ORM : Query Statistics
+
+ORM --> MySQL : SQL Queries
+ProductMgmt --> ProductImg : Store/Retrieve
+ReviewSys --> ReviewImg : Store/Retrieve
+ComplaintSys --> ComplaintImg : Store/Retrieve
+LoginCtrl --> ProfileImg : Store/Retrieve
+RegisterCtrl --> ProfileImg : Store/Retrieve
+
+OrderMgmt --> Payment : Process Payment
+OrderMgmt --> Email : Send Order Confirmation
+
+@enduml

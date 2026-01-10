@@ -1,0 +1,65 @@
+@startuml Activity Diagram - Order Lifecycle
+
+start
+
+:Customer places order;
+:Order status: proses;
+
+:Admin views order;
+
+if (Admin action?) then (Update status)
+  :Admin updates status to pengemasan;
+  :Order status: pengemasan;
+  
+  :Admin updates status to pengiriman;
+  :Order status: pengiriman;
+  
+  :Package shipped;
+  :Order status: sudah_sampai;
+  
+  if (Customer receives package?) then (yes)
+    :Customer clicks complete order;
+    if (Submit reviews?) then (yes)
+      :Customer submits product reviews;
+    endif
+    :Update order status to selesai;
+    :Update payment status to released;
+    :Order completed;
+    stop
+  else (no)
+    :Wait for customer;
+  endif
+  
+else (Cancel order)
+  :Customer requests cancellation;
+  :Order status: pending_cancellation;
+  
+  :Admin reviews cancellation;
+  
+  if (Admin decision?) then (Approve)
+    :Restore product stock;
+    :Update order status to cancelled;
+    :Order cancelled;
+    stop
+  else (Reject)
+    :Update order status back to proses;
+    :Order continues;
+  endif
+endif
+
+if (Order completed?) then (yes)
+  if (Customer has complaint?) then (yes)
+    :Customer submits complaint;
+    :Complaint status: pending;
+    :Admin reviews complaint;
+    if (Admin response?) then (Resolve)
+      :Complaint status: resolved;
+    else (Reject)
+      :Complaint status: rejected;
+    endif
+  endif
+endif
+
+stop
+
+@enduml

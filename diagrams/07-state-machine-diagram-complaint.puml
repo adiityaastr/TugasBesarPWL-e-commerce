@@ -1,0 +1,70 @@
+@startuml State Machine Diagram - Complaint State Machine
+
+[*] --> pending : Complaint Submitted
+
+state pending {
+    : Complaint created
+    : Waiting for admin review
+    : Admin response: null
+}
+
+pending --> in_progress : Admin starts reviewing
+pending --> resolved : Admin resolves immediately
+pending --> rejected : Admin rejects complaint
+
+state in_progress {
+    : Admin reviewing complaint
+    : Investigating issue
+    : May request additional info
+}
+
+in_progress --> resolved : Admin resolves
+in_progress --> rejected : Admin rejects
+
+state resolved {
+    : Complaint resolved
+    : Admin provided response
+    : Issue addressed
+}
+
+state rejected {
+    : Complaint rejected
+    : Admin provided reason
+    : No further action
+}
+
+resolved --> [*] : Final State
+rejected --> [*] : Final State
+
+note right of pending
+  **Initial State**
+  - Only orders with status 'selesai'
+    can have complaints
+  - Customer provides:
+    - Title
+    - Detail
+    - Image (optional)
+end note
+
+note right of in_progress
+  **Review State**
+  - Admin can update status
+  - Admin can add response
+  - Customer can view status
+end note
+
+note right of resolved
+  **Resolved State**
+  - Admin provided solution
+  - Customer notified
+  - Final state
+end note
+
+note right of rejected
+  **Rejected State**
+  - Complaint not valid
+  - Admin provided reason
+  - Final state
+end note
+
+@enduml

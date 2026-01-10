@@ -1,0 +1,220 @@
+@startuml Class Diagram - Herbamart E-Commerce
+
+!define ENTITY_COLOR #E1F5FF
+!define CONTROLLER_COLOR #FFF4E1
+!define MIDDLEWARE_COLOR #E8F5E9
+
+package "Models" ENTITY_COLOR {
+    class User {
+        -id: int
+        -name: string
+        -username: string
+        -full_name: string
+        -email: string
+        -password: string
+        -role: string
+        -profile_photo_path: string
+        -email_verified_at: datetime
+        -remember_token: string
+        +orders(): HasMany
+        +addresses(): HasMany
+    }
+
+    class Product {
+        -id: int
+        -name: string
+        -slug: string
+        -description: text
+        -price: decimal
+        -stock: int
+        -image: string
+        -category: string
+        +getRouteKeyName(): string
+    }
+
+    class Order {
+        -id: int
+        -user_id: int
+        -order_number: string
+        -total_price: decimal
+        -status: string
+        -cancellation_reason: text
+        -shipping_address: string
+        -provinsi: string
+        -kota: string
+        -kecamatan: string
+        -kelurahan: string
+        -kode_pos: string
+        -shipping_method: string
+        -shipping_cost: decimal
+        -payment_method: string
+        -payment_status: string
+        +user(): BelongsTo
+        +items(): HasMany
+        +reviews(): HasMany
+        +complaints(): HasMany
+    }
+
+    class OrderItem {
+        -id: int
+        -order_id: int
+        -product_id: int
+        -quantity: int
+        -price: decimal
+        +order(): BelongsTo
+        +product(): BelongsTo
+    }
+
+    class Cart {
+        -id: int
+        -user_id: int
+        -product_id: int
+        -quantity: int
+        +product(): BelongsTo
+        +user(): BelongsTo
+    }
+
+    class Address {
+        -id: int
+        -user_id: int
+        -recipient_name: string
+        -shipping_address: string
+        -provinsi: string
+        -kota: string
+        -kecamatan: string
+        -kelurahan: string
+        -kode_pos: string
+        -is_default: boolean
+        +user(): BelongsTo
+    }
+
+    class Complaint {
+        -id: int
+        -order_id: int
+        -user_id: int
+        -title: string
+        -detail: text
+        -image_path: string
+        -status: string
+        -admin_response: text
+        +order(): BelongsTo
+        +user(): BelongsTo
+    }
+
+    class Review {
+        -id: int
+        -user_id: int
+        -product_id: int
+        -order_id: int
+        -rating: int
+        -comment: text
+        -image_path: string
+        +user(): BelongsTo
+        +product(): BelongsTo
+        +order(): BelongsTo
+    }
+}
+
+package "Controllers" CONTROLLER_COLOR {
+    class ProductController {
+        +index(): View
+        +adminIndex(): View
+        +create(): View
+        +store(Request): Redirect
+        +show(Product): View
+        +edit(Product): View
+        +update(Request, Product): Redirect
+        +destroy(Product): Redirect
+        -categoryOptions(): array
+    }
+
+    class OrderController {
+        +index(): View
+        +create(): View
+        +store(Request): Redirect
+        +show(Order): View
+        +invoice(Order): View
+        +complete(Request, Order): Redirect
+        -generateOrderNumber(): string
+    }
+
+    class CartController {
+        +index(Request): View|JsonResponse
+        +store(Request): Redirect|JsonResponse
+        +update(Request, Cart): Redirect|JsonResponse
+        +destroy(Request, Cart): Redirect|JsonResponse
+    }
+
+    class AddressController {
+        +store(Request): Redirect|JsonResponse
+        +update(Request, Address): Redirect|JsonResponse
+        +destroy(Request, Address): Redirect|JsonResponse
+        +setDefault(Address): Redirect
+    }
+
+    class ComplaintController {
+        +store(Request, Order): Redirect
+        +index(): View
+        +show(Complaint): View
+        +updateStatus(Request, Complaint): Redirect
+    }
+
+    class OrderCancelController {
+        +__invoke(Request, Order): Redirect
+    }
+
+    class ProfileController {
+        +edit(): View
+        +update(Request): Redirect
+        +destroy(Request): Redirect
+    }
+
+    class Admin\DashboardController {
+        +index(): View
+        +orders(): View
+        +label(Order): View
+        +updateOrderStatus(Request, Order): Redirect
+        +approveCancellation(Request, Order): Redirect
+        +rejectCancellation(Request, Order): Redirect
+        +reports(Request): View
+    }
+}
+
+package "Middleware" MIDDLEWARE_COLOR {
+    class AdminMiddleware {
+        +handle(Request, Closure): Response
+    }
+
+    class RedirectAdminFromCustomer {
+        +handle(Request, Closure): Response
+    }
+}
+
+' Relationships
+User "1" --> "*" Order : has
+User "1" --> "*" Address : has
+User "1" --> "*" Cart : has
+User "1" --> "*" Review : has
+User "1" --> "*" Complaint : has
+
+Product "1" --> "*" OrderItem : has
+Product "1" --> "*" Cart : has
+Product "1" --> "*" Review : has
+
+Order "1" --> "*" OrderItem : has
+Order "1" --> "*" Review : has
+Order "1" --> "*" Complaint : has
+
+ProductController ..> Product : uses
+OrderController ..> Order : uses
+OrderController ..> OrderItem : uses
+CartController ..> Cart : uses
+CartController ..> Product : uses
+AddressController ..> Address : uses
+ComplaintController ..> Complaint : uses
+ComplaintController ..> Order : uses
+Admin\DashboardController ..> Order : uses
+Admin\DashboardController ..> Product : uses
+Admin\DashboardController ..> User : uses
+
+@enduml

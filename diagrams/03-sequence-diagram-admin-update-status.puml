@@ -1,0 +1,55 @@
+@startuml Sequence Diagram - Admin Update Order Status
+
+actor Admin
+participant "Admin DashboardController" as AdminCtrl
+participant "Order Model" as Order
+participant "OrderItem Model" as OrderItem
+participant "Product Model" as Product
+participant Database
+
+Admin -> AdminCtrl: PATCH /admin/orders/{order}
+activate AdminCtrl
+AdminCtrl -> AdminCtrl: validate request (status)
+AdminCtrl -> Order: find order with items
+activate Order
+Order -> Database: query order with items
+Database --> Order: order with items
+Order --> AdminCtrl: order
+deactivate Order
+
+AdminCtrl -> AdminCtrl: validate status transition
+alt Status is selesai
+    AdminCtrl --> Admin: error: only customer can complete
+else Status is cancelled
+    alt Order status not pending_cancellation
+        AdminCtrl --> Admin: error: invalid status
+    else Valid cancellation
+        loop For each order item
+            AdminCtrl -> Product: find product
+            activate Product
+            Product -> Database: query product
+            Database --> Product: product
+            Product --> AdminCtrl: product
+            deactivate Product
+            
+            AdminCtrl -> Product: increment stock
+            activate Product
+            Product -> Database: update stock
+            Database --> Product: updated
+            Product --> AdminCtrl: success
+            deactivate Product
+        end
+    end
+end
+
+AdminCtrl -> Order: update status
+activate Order
+Order -> Database: update order
+Database --> Order: updated
+Order --> AdminCtrl: success
+deactivate Order
+
+AdminCtrl --> Admin: success: status updated
+deactivate AdminCtrl
+
+@enduml

@@ -1,0 +1,103 @@
+@startuml Sequence Diagram - Order Cancellation Process
+
+actor Customer
+participant "OrderCancelController" as Cancel
+participant "Order Model" as Order
+participant "Admin DashboardController" as Admin
+participant "Product Model" as Product
+participant "OrderItem Model" as OrderItem
+participant Database
+
+== Customer Requests Cancellation ==
+Customer -> Cancel: PATCH /orders/{order}/cancel
+activate Cancel
+Cancel -> Cancel: validate user owns order
+Cancel -> Order: find order
+activate Order
+Order -> Database: query order
+Database --> Order: order data
+Order --> Cancel: order
+deactivate Order
+
+Cancel -> Cancel: validate order status
+alt Order already cancelled
+    Cancel --> Customer: error: already cancelled
+else Order completed
+    Cancel --> Customer: error: cannot cancel completed order
+else Valid status
+    Cancel -> Order: update status to pending_cancellation
+    activate Order
+    Order -> Database: update order
+    Database --> Order: updated
+    Order --> Cancel: success
+    deactivate Order
+    Cancel --> Customer: success: cancellation requested
+end
+deactivate Cancel
+
+== Admin Reviews Cancellation ==
+Admin -> Admin: GET /admin/orders
+Admin -> Order: get orders with pending_cancellation
+activate Order
+Order -> Database: query orders
+Database --> Order: orders
+Order --> Admin: orders
+deactivate Order
+Admin --> Admin: view orders page
+
+alt Admin Approves Cancellation
+    Admin -> Admin: POST /admin/orders/{order}/approve-cancellation
+    activate Admin
+    Admin -> Order: find order
+    activate Order
+    Order -> Database: query order with items
+    Database --> Order: order with items
+    Order --> Admin: order
+    deactivate Order
+    
+    loop For each order item
+        Admin -> Product: find product
+        activate Product
+        Product -> Database: query product
+        Database --> Product: product
+        Product --> Admin: product
+        deactivate Product
+        
+        Admin -> Product: increment stock
+        activate Product
+        Product -> Database: update stock
+        Database --> Product: updated
+        Product --> Admin: success
+        deactivate Product
+    end
+    
+    Admin -> Order: update status to cancelled
+    activate Order
+    Order -> Database: update order
+    Database --> Order: updated
+    Order --> Admin: success
+    deactivate Order
+    Admin --> Admin: success message
+    deactivate Admin
+
+else Admin Rejects Cancellation
+    Admin -> Admin: POST /admin/orders/{order}/reject-cancellation
+    activate Admin
+    Admin -> Order: find order
+    activate Order
+    Order -> Database: query order
+    Database --> Order: order
+    Order --> Admin: order
+    deactivate Order
+    
+    Admin -> Order: update status to proses
+    activate Order
+    Order -> Database: update order (clear cancellation_reason)
+    Database --> Order: updated
+    Order --> Admin: success
+    deactivate Order
+    Admin --> Admin: success message
+    deactivate Admin
+end
+
+@enduml

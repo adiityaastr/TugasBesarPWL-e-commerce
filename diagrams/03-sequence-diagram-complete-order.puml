@@ -1,0 +1,62 @@
+@startuml Sequence Diagram - Complete Order Process
+
+actor Customer
+participant "OrderController" as OrderCtrl
+participant "Order Model" as Order
+participant "Review Model" as Review
+participant "Product Model" as Product
+participant Database
+
+Customer -> OrderCtrl: PATCH /orders/{order}/complete
+activate OrderCtrl
+OrderCtrl -> OrderCtrl: validate user owns order
+OrderCtrl -> Order: find order
+activate Order
+Order -> Database: query order
+Database --> Order: order data
+Order --> OrderCtrl: order
+deactivate Order
+
+OrderCtrl -> OrderCtrl: validate order status
+alt Status not pengiriman or sudah_sampai
+    OrderCtrl --> Customer: error: cannot complete
+else Valid status
+    OrderCtrl -> Database: begin transaction
+    
+    opt Customer submits reviews
+        loop For each review in request
+            opt Review has image
+                OrderCtrl -> OrderCtrl: store image
+                OrderCtrl -> Database: store image file
+                Database --> OrderCtrl: image path
+            end
+            
+            OrderCtrl -> Review: create review
+            activate Review
+            Review -> Database: insert review
+            Database --> Review: review created
+            Review --> OrderCtrl: success
+            deactivate Review
+        end
+    end
+    
+    OrderCtrl -> Order: update status to selesai
+    activate Order
+    Order -> Database: update order status
+    Database --> Order: updated
+    Order --> OrderCtrl: success
+    deactivate Order
+    
+    OrderCtrl -> Order: update payment_status to released
+    activate Order
+    Order -> Database: update payment_status
+    Database --> Order: updated
+    Order --> OrderCtrl: success
+    deactivate Order
+    
+    OrderCtrl -> Database: commit transaction
+    OrderCtrl --> Customer: success: order completed
+end
+deactivate OrderCtrl
+
+@enduml

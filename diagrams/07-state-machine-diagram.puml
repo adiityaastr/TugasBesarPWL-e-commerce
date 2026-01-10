@@ -1,0 +1,89 @@
+@startuml State Machine Diagram - Order State Machine
+
+[*] --> proses : Order Placed
+
+state proses {
+    : Order created
+    : Payment pending
+}
+
+proses --> pengemasan : Admin updates status
+proses --> pending_cancellation : Customer requests cancellation
+proses --> cancelled : Admin cancels directly
+
+state pengemasan {
+    : Admin preparing order
+    : Items being packed
+}
+
+pengemasan --> pengiriman : Admin updates status
+pengemasan --> pending_cancellation : Customer requests cancellation
+
+state pengiriman {
+    : Order shipped
+    : In transit
+}
+
+pengiriman --> sudah_sampai : Package delivered
+pengiriman --> pending_cancellation : Customer requests cancellation
+
+state sudah_sampai {
+    : Package received
+    : Waiting for customer confirmation
+}
+
+sudah_sampai --> selesai : Customer completes order
+sudah_sampai --> selesai : Auto-complete after 3 days
+
+state pending_cancellation {
+    : Cancellation requested
+    : Waiting for admin review
+}
+
+pending_cancellation --> cancelled : Admin approves
+pending_cancellation --> proses : Admin rejects
+
+state cancelled {
+    : Order cancelled
+    : Stock restored
+}
+
+state selesai {
+    : Order completed
+    : Payment released
+    : Reviews submitted (optional)
+}
+
+selesai --> [*] : Final State
+
+note right of proses
+  **Initial State**
+  - Order just created
+  - Payment status: pending
+  - Stock already decremented
+end note
+
+note right of pending_cancellation
+  **Cancellation Request**
+  - Customer provides reason
+  - Admin must review
+  - Stock not yet restored
+end note
+
+note right of cancelled
+  **Cancelled State**
+  - Stock automatically restored
+  - Cannot be reactivated
+  - Final state
+end note
+
+note right of selesai
+  **Completed State**
+  - Customer confirmed receipt
+  - Payment released to seller
+  - Reviews can be submitted
+  - Complaints can be filed
+  - Final state
+end note
+
+@enduml
